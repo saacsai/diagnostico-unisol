@@ -25,8 +25,8 @@ Perguntas do formulário (fonte, não editar): `Desktop/COOPERAMAIS/Plano de tra
 | Projeto Supabase novo (`aloumokqafywqntdisen`) | ✅ criado, migration rodada, tabelas confirmadas via REST |
 | Vercel link + projeto novo + env vars (production/development) | ✅ — **preview** ficou sem as 3 env vars (bug do CLI com `--value` em preview, ver "Pendências") |
 | Deploy produção | ✅ https://diagnostico-unisol.vercel.app |
-| DNS Hostgator — registro A `diagnostico` → `76.76.21.21` | ✅ propagado e validado pela Vercel |
-| Domínio final `diagnostico.unisolbrasil.org.br` com HTTPS | ⏳ certificado Let's Encrypt em emissão (automático da Vercel, checar em alguns minutos/até 1h) |
+| DNS Hostgator — CNAME `diagnostico` → `754232ffc198aa35.vercel-dns-017.com` | ✅ propagado (trocamos o registro A inicial pelo CNAME que a Vercel pediu no dashboard — domínio fora dos nameservers dela precisa do CNAME específico, não do A genérico) |
+| Domínio final `diagnostico.unisolbrasil.org.br` com HTTPS | ✅ confirmado — HTTP 200 em `/login` |
 | Usuário técnico de teste | ✅ `luciano.maeda@saacs.com.br` / senha `Diagnostico2026!` (perfil `tecnico`, trocar senha após primeiro login) |
 
 ## Pendências menores (não bloqueiam a Fase 2)
