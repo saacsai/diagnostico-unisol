@@ -46,8 +46,42 @@ Perguntas do formulário (fonte, não editar): `Desktop/COOPERAMAIS/Plano de tra
 - Ícones do manifest são **placeholder** (monograma "DU" verde `#1B5E37`, gerado via PIL) —
   trocar quando a UNISOL Brasil tiver identidade visual definida pro app.
 
+## Pivô arquitetural — Cadastro Nacional UNISOL (2026-08-31, mesmo dia)
+
+Descoberto em memória: decisão de 15/08 (kickoff CooperaMais) já previa que a UNISOL Brasil
+tem ~1000 empreendimentos afiliados no total, N:N com projetos (CooperaMais, Terra Mesa...),
+e que isso merecia um "Cadastro Nacional UNISOL" — schema documentado em
+`memory/cadastro_nacional_unisol.md`. Como o banco do Diagnóstico ainda não tinha dado real,
+consolidamos os dois no MESMO projeto Supabase (decisão revisitada com o Luciano) em vez de
+criar um app separado.
+
+`supabase_migration_01_cadastro_nacional.sql` (escrita, **ainda não rodada** — falta colar no
+SQL Editor) adiciona:
+- `unisol_estaduais` (UNISOL SP, BA, RS...) — nasce vazia, popular depois
+- `projetos` (seed: CooperaMais) e `empreendimentos` (os ~1000, cadastro único — Seção 2 do
+  formulário é este cadastro)
+- `empreendimento_projeto` — N:N, resolve "quantos no CooperaMais vs. Terra Mesa"
+- `usuarios.unisol_estadual_id` e `empreendimentos.unisol_estadual_id` — de qual estadual
+  cada um é (eixo independente de "em que projeto está engajado")
+- `diagnosticos.codigo_empreendimento` (texto) → `empreendimento_id` + `projeto_id` (FK de
+  verdade). Campos nome/regiao/uf/municipio viram snapshot (cache offline), não fonte de verdade.
+
+`lib/supabase.ts` já atualizado com os tipos novos (`Empreendimento`, `Projeto`,
+`EmpreendimentoProjeto`, `UnisolEstadual`) e build local limpo.
+
+**Também decidido, ainda não implementado:** dirigente da cooperativa preenche direto (via
+link com token, sem login) as seções que ele sabe de cor — Seção 2 (=cadastro em
+`empreendimentos`), 3, 4, 6, 7, 10, 12, 15. Técnico em campo fica com Seção 1, 5, 9, 17, 18 +
+valida/completa o resto na visita. Reusa o padrão de portal por token já usado no
+ecouni-dashboard (`/disponibilidade/[token]`).
+
 ## Próxima sessão — retomar por aqui
-Fase 1 concluída. Ir direto pra **Fase 2** do plano
-(`.claude/plans/twinkling-imagining-fairy.md`): Dexie + `dexie-react-hooks`, `sync.ts`, wizard
-shell com as 18+2 seções na sidebar, Seções 1 e 2 completas, prova end-to-end do loop offline
-(criar em modo avião → sincronizar ao voltar a rede).
+1. Rodar `supabase_migration_01_cadastro_nacional.sql` no SQL Editor (ainda pendente).
+2. Tela `/admin/usuarios` (cadastro dos ~35-40 usuários — 18 técnicos, 2 coordenadores
+   gerais, 5 coordenadores regionais, 5 administrativos regionais, diretoria — via convite
+   por email; configurar SMTP próprio no Supabase Auth pra não travar no rate limit padrão).
+3. Fase 2 do plano original (`.claude/plans/twinkling-imagining-fairy.md`): Dexie +
+   `dexie-react-hooks`, `sync.ts`, wizard shell com as 18+2 seções, Seções 1 e 2 completas,
+   prova end-to-end do loop offline — Seção 2 agora escreve em `empreendimentos`, não mais
+   como resposta solta dentro do diagnóstico.
+4. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).

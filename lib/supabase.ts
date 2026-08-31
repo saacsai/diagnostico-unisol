@@ -28,6 +28,16 @@ export type Classificacao =
   | 'em_desenvolvimento'
   | 'estruturado'
   | 'consolidado'
+export type FormaOrganizativa =
+  | 'cooperativa'
+  | 'associacao'
+  | 'grupo_informal'
+  | 'rede_central'
+  | 'empreendimento_comunitario'
+  | 'outra'
+export type Zona              = 'urbana' | 'rural' | 'transicao'
+export type VinculacaoUnisol  = 'filiado' | 'em_processo' | 'nao_filiado' | 'nao_sabe'
+export type StatusEmpProjeto  = 'ativo' | 'inativo' | 'encerrado'
 
 // ─── Entidades ────────────────────────────────────────────────────────────────
 
@@ -37,14 +47,78 @@ export interface Usuario {
   email: string
   perfil: Perfil
   instituicao: string | null
+  unisol_estadual_id: string | null
   ativo: boolean
+  created_at: string
+}
+
+// UNISOL SP, UNISOL BA, UNISOL RS etc. — a estadual é "de onde o empreendimento é"
+// (eixo institucional), independente de "em que projeto ele está engajado agora"
+// (eixo empreendimento_projeto). Mesmo cadastro, dois ângulos.
+export interface UnisolEstadual {
+  id: string
+  nome: string
+  uf: string
+  ativo: boolean
+  created_at: string
+}
+
+// Cadastro Nacional UNISOL — os ~1000 empreendimentos afiliados (não é exclusivo do
+// CooperaMais; ver empreendimento_projeto para o vínculo N:N com cada projeto).
+export interface Empreendimento {
+  id: string
+  codigo: string | null
+  razao_social: string | null
+  nome_fantasia: string | null
+  forma_organizativa: FormaOrganizativa | null
+  cnpj: string | null
+  ano_criacao: number | null
+  ano_formalizacao: number | null
+  endereco: string | null
+  regiao: string | null
+  uf: string | null
+  municipio: string | null
+  zona: Zona | null
+  territorio_tipo: string | null
+  area_abrangencia: string | null
+  telefones: string | null
+  email: string | null
+  redes_sociais: string | null
+  site: string | null
+  pessoa_referencia_nome: string | null
+  pessoa_referencia_funcao: string | null
+  pessoa_referencia_tel: string | null
+  pessoa_referencia_email: string | null
+  vinculacao_unisol: VinculacaoUnisol | null
+  unisol_estadual_id: string | null
+  bsr_referencia: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Projeto {
+  id: string
+  nome: string
+  descricao: string | null
+  ativo: boolean
+  created_at: string
+}
+
+export interface EmpreendimentoProjeto {
+  id: string
+  empreendimento_id: string
+  projeto_id: string
+  status: StatusEmpProjeto
+  data_entrada: string
   created_at: string
 }
 
 export interface Diagnostico {
   id: string
-  codigo_empreendimento: string
+  empreendimento_id: string
+  projeto_id: string
   versao: number
+  /** Snapshot no momento da criação — fonte de verdade é empreendimentos.nome_fantasia */
   nome_empreendimento: string | null
   regiao: string | null
   uf: string | null
