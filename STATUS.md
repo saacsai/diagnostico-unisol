@@ -55,8 +55,9 @@ e que isso merecia um "Cadastro Nacional UNISOL" — schema documentado em
 consolidamos os dois no MESMO projeto Supabase (decisão revisitada com o Luciano) em vez de
 criar um app separado.
 
-`supabase_migration_01_cadastro_nacional.sql` (escrita, **ainda não rodada** — falta colar no
-SQL Editor) adiciona:
+`supabase_migration_01_cadastro_nacional.sql` (escrita e **rodada com sucesso** em 2026-08-31,
+confirmada via REST: `unisol_estaduais`/`empreendimentos`/`empreendimento_projeto` vazias,
+`projetos` com o seed do CooperaMais) adiciona:
 - `unisol_estaduais` (UNISOL SP, BA, RS...) — nasce vazia, popular depois
 - `projetos` (seed: CooperaMais) e `empreendimentos` (os ~1000, cadastro único — Seção 2 do
   formulário é este cadastro)
@@ -75,11 +76,18 @@ link com token, sem login) as seções que ele sabe de cor — Seção 2 (=cadas
 valida/completa o resto na visita. Reusa o padrão de portal por token já usado no
 ecouni-dashboard (`/disponibilidade/[token]`).
 
+## Nota — copiar/colar SQL no editor do Supabase
+Colar direto do chat corrompeu caracteres duas vezes (erro de sintaxe em linha que não batia
+com o arquivo real). O que resolveu: abrir o `.sql` no Finder/editor de texto e copiar de lá,
+não do chat. Vale como procedimento padrão pras próximas migrations.
+
 ## Próxima sessão — retomar por aqui
-1. Rodar `supabase_migration_01_cadastro_nacional.sql` no SQL Editor (ainda pendente).
-2. Tela `/admin/usuarios` (cadastro dos ~35-40 usuários — 18 técnicos, 2 coordenadores
+1. Tela `/admin/usuarios` (cadastro dos ~35-40 usuários — 18 técnicos, 2 coordenadores
    gerais, 5 coordenadores regionais, 5 administrativos regionais, diretoria — via convite
    por email; configurar SMTP próprio no Supabase Auth pra não travar no rate limit padrão).
+2. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
+   empreendimentos do CooperaMais em `empreendimentos` + `empreendimento_projeto` (fonte:
+   planilha/lista real da UNISOL, ainda não recebida).
 3. Fase 2 do plano original (`.claude/plans/twinkling-imagining-fairy.md`): Dexie +
    `dexie-react-hooks`, `sync.ts`, wizard shell com as 18+2 seções, Seções 1 e 2 completas,
    prova end-to-end do loop offline — Seção 2 agora escreve em `empreendimentos`, não mais
