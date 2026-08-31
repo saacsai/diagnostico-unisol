@@ -157,8 +157,8 @@ comment on column diagnosticos.regiao  is 'Snapshot — fonte de verdade é empr
 comment on column diagnosticos.uf      is 'Snapshot — fonte de verdade é empreendimentos.uf';
 comment on column diagnosticos.municipio is 'Snapshot — fonte de verdade é empreendimentos.municipio';
 
+-- DROP COLUMN já derruba sozinho a UNIQUE(codigo_empreendimento, versao) que dependia dela.
 alter table diagnosticos drop column codigo_empreendimento;
-alter table diagnosticos drop constraint diagnosticos_codigo_empreendimento_versao_key;
 alter table diagnosticos add constraint diagnosticos_empreendimento_versao_key unique (empreendimento_id, versao);
 alter table diagnosticos alter column empreendimento_id set not null;
 alter table diagnosticos alter column projeto_id set not null;
