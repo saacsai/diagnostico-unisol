@@ -68,8 +68,7 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6" style={{ background: 'var(--background)' }}>
-      <div className="max-w-lg mx-auto space-y-4">
+    <div className="max-w-lg mx-auto lg:mx-0 space-y-4">
         <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>Novo diagnóstico</h1>
 
         <div className="flex gap-2">
@@ -117,7 +116,6 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
             {salvando ? 'Criando…' : 'Criar diagnóstico'}
           </button>
         </div>
-      </div>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { DiagnosticoWizardShell } from '@/components/diagnostico/wizard/DiagnosticoWizardShell'
 import { ListaDiagnosticos } from '@/components/diagnostico/wizard/ListaDiagnosticos'
+import { AppShell } from '@/components/layout/AppShell'
 
 export default function DiagnosticosPage() {
   return (
@@ -30,5 +31,14 @@ function DiagnosticosInner() {
   }, [])
 
   if (autenticado !== true) return null
-  return id ? <DiagnosticoWizardShell diagnosticoId={id} /> : <ListaDiagnosticos />
+
+  // O wizard em si é uma view imersiva de propósito (tem sua própria navegação
+  // lateral entre as 18+2 seções) — não entra dentro do AppShell pra não duplicar sidebar.
+  if (id) return <DiagnosticoWizardShell diagnosticoId={id} />
+
+  return (
+    <AppShell>
+      <ListaDiagnosticos />
+    </AppShell>
+  )
 }
