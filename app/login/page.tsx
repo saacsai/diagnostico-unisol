@@ -17,7 +17,7 @@ export default function LoginPage() {
 
 function LoginInner() {
   const params = useSearchParams()
-  const next = params.get('next') ?? '/dashboard'
+  const next = params.get('next') ?? '/diagnosticos'
 
   const [email, setEmail]       = useState('')
   const [senha, setSenha]       = useState('')
