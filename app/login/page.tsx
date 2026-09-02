@@ -79,9 +79,12 @@ function LoginInner() {
       <div className="rounded-xl shadow-xl w-full max-w-sm overflow-hidden" style={{ background: PRIMARY }}>
 
         {/* Cabeçalho */}
-        <div className="px-6 pt-8 pb-5 flex flex-col items-center gap-1 text-center">
-          <p className="text-lg font-bold text-white tracking-tight">Diagnóstico UNISOL</p>
-          <p className="text-xs tracking-wide" style={{ color: ACCENT }}>CooperaMais · Agricultura Familiar</p>
+        <div className="px-6 pt-8 pb-5 flex flex-col items-center gap-2 text-center">
+          <div className="bg-white rounded-lg px-4 py-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo_unisol.png" alt="UNISOL Brasil" className="h-10 w-auto object-contain" />
+          </div>
+          <p className="text-xs tracking-wide" style={{ color: ACCENT }}>Diagnóstico Participativo · CooperaMais</p>
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }} />

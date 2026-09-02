@@ -66,8 +66,11 @@ export function AppSidebar({
           ${mobileAberto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         <div className="px-4 pt-5 pb-4">
-          <p className="text-white font-bold text-sm tracking-tight leading-tight">Diagnóstico<br />UNISOL Brasil</p>
-          <p className="mt-1 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>CooperaMais</p>
+          <div className="bg-white rounded-lg px-2.5 py-2 inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo_unisol.png" alt="UNISOL Brasil" className="h-7 w-auto object-contain" />
+          </div>
+          <p className="mt-1.5 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Diagnóstico · CooperaMais</p>
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }} />

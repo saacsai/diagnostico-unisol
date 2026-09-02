@@ -24,6 +24,9 @@
 /public/swe-worker-*.js
 /public/swe-worker-*.js.map
 
+# assets de referência (não usados pelo app — o que é usado já está em public/)
+/Logo/
+
 # misc
 .DS_Store
 *.pem
