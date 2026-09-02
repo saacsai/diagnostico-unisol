@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Diagnostico, Empreendimento } from '@/lib/supabase'
+import { getSupabase, Diagnostico, Empreendimento, Usuario } from '@/lib/supabase'
 import { NovoDiagnostico } from './NovoDiagnostico'
 
 type DiagnosticoComEmpreendimento = Diagnostico & { empreendimentos: Empreendimento | null }
@@ -10,14 +10,21 @@ export function ListaDiagnosticos() {
   const [lista, setLista] = useState<DiagnosticoComEmpreendimento[]>([])
   const [carregando, setCarregando] = useState(true)
   const [criando, setCriando] = useState(false)
+  const [ehAdmin, setEhAdmin] = useState(false)
 
   async function carregar() {
     setCarregando(true)
-    const { data } = await getSupabase()
+    const sb = getSupabase()
+    const { data } = await sb
       .from('diagnosticos')
       .select('*, empreendimentos(*)')
       .order('created_at', { ascending: false })
     setLista((data as DiagnosticoComEmpreendimento[]) || [])
+    const { data: sessao } = await sb.auth.getSession()
+    if (sessao.session) {
+      const { data: userRow } = await sb.from('usuarios').select('*').eq('id', sessao.session.user.id).single()
+      setEhAdmin((userRow as Usuario | null)?.perfil === 'admin')
+    }
     setCarregando(false)
   }
 
@@ -56,7 +63,11 @@ export function ListaDiagnosticos() {
           </div>
         )}
 
-        <a href="/dashboard" className="block text-center text-xs text-gray-400 hover:text-gray-600 pt-2">← Voltar</a>
+        {ehAdmin && (
+          <a href="/admin" className="block text-center text-xs font-medium hover:underline pt-2" style={{ color: 'var(--primary)' }}>
+            ⚙ Administração (usuários, UNISOL estaduais)
+          </a>
+        )}
       </div>
     </div>
   )
