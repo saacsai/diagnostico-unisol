@@ -21,12 +21,26 @@ e vincular a um projeto — não só admin. Migration 02 confirmada rodada; **mi
 (`empreendimento_projeto` insert) ainda pendente** — sem ela, o vínculo N:N não é gravado ao
 criar diagnóstico (o diagnóstico em si é criado normalmente, só o vínculo fica de fora).
 
+## Tela /admin — CONCLUÍDA (2026-09-02, mesmo dia)
+
+`/admin` (só visível/acessível pra `perfil='admin'`, checado no cliente E no servidor):
+- Cadastro de usuários (técnicos/coordenadores) — sem convite por email na v1, admin vê a
+  senha temporária gerada na tela e repassa manualmente (WhatsApp etc). Perfil, instituição e
+  UNISOL Estadual (opcional) na hora do cadastro.
+- Cadastro de UNISOL Estaduais (nome + UF) — lista nasce vazia, popular aqui.
+- `app/api/admin/usuarios/route.ts` usa service-role mas **confirma server-side** que quem
+  chama já é admin antes de criar qualquer coisa — testado em produção: chamada de um usuário
+  não-admin retorna 403 de verdade, não é só a UI escondendo o botão.
+- Usuário de teste (`luciano.maeda@saacs.com.br`) promovido a `admin` pra poder usar a tela.
+
 **Pendente pra próxima leva**:
 1. Rodar `supabase_migration_03_empreendimento_projeto_insert.sql`.
 2. Offline de verdade — Dexie + fila de sync (arquitetura já desenhada no plano original).
-3. Tela `/admin/usuarios`, popular `unisol_estaduais`, importar os 152 empreendimentos reais.
+3. Popular `unisol_estaduais` de verdade (lista real ainda não recebida) e importar os 152
+   empreendimentos do CooperaMais.
 4. Portal do dirigente por token (Seções 2/3/4/6/7/10/12/15 pré-preenchidas).
-5. Completude de seção no sidebar é só "tem algo preenchido?" — heurística simples de
+5. Convite por email de verdade pro cadastro de usuário (hoje é senha temporária manual).
+6. Completude de seção no sidebar é só "tem algo preenchido?" — heurística simples de
    propósito, só refinar se confundir técnico em uso real.
 
 ## O que é
