@@ -1,5 +1,34 @@
 # Status — Diagnóstico UNISOL Brasil
 
+## Fase 2 (wizard) — CONCLUÍDA versão ONLINE (2026-09-02)
+
+Decisão (entrega rápida): wizard completo das 18 seções + 2 anexos, gravando **direto no
+Supabase** (autosave debounced ~600ms por seção), **sem Dexie/offline ainda**. Combinado com o
+Luciano — offline é a próxima leva, não "depois depois", por causa do sinal ruim em campo real.
+
+**No ar e testado E2E em produção** (`/diagnosticos`): login → lista de diagnósticos → criar
+novo (buscar empreendimento existente OU cadastrar na hora) → wizard com sidebar das 18+2
+seções → autosave → Seção 17 calcula pontuação/classificação sozinha (13 dimensões, máx 52).
+
+**Arquivos-chave**: `lib/diagnostico/schema.ts` (tipos), `lib/diagnostico/useAutosave.ts` (hook
+de gravação, trocável por Dexie+fila depois sem mudar as seções), `components/diagnostico/campos/`
+(7 primitivas reutilizáveis: CampoTexto/Select/Numero/Data, EscalaMaturidade0a4, MatrizFixa,
+TabelaRepetivel, ChecklistSituacao), `components/diagnostico/secoes/` (20 componentes),
+`components/diagnostico/wizard/` (shell, sidebar, lista, criação).
+
+**RLS relaxada** (migrations 02 e 03): qualquer autenticado pode cadastrar empreendimento novo
+e vincular a um projeto — não só admin. Migration 02 confirmada rodada; **migration 03
+(`empreendimento_projeto` insert) ainda pendente** — sem ela, o vínculo N:N não é gravado ao
+criar diagnóstico (o diagnóstico em si é criado normalmente, só o vínculo fica de fora).
+
+**Pendente pra próxima leva**:
+1. Rodar `supabase_migration_03_empreendimento_projeto_insert.sql`.
+2. Offline de verdade — Dexie + fila de sync (arquitetura já desenhada no plano original).
+3. Tela `/admin/usuarios`, popular `unisol_estaduais`, importar os 152 empreendimentos reais.
+4. Portal do dirigente por token (Seções 2/3/4/6/7/10/12/15 pré-preenchidas).
+5. Completude de seção no sidebar é só "tem algo preenchido?" — heurística simples de
+   propósito, só refinar se confundir técnico em uso real.
+
 ## O que é
 App PWA offline-first pra aplicar o diagnóstico institucional (18 seções + 2 anexos) nos 152
 empreendimentos do CooperaMais/UNISOL Brasil em campo, sem depender de sinal de internet.
