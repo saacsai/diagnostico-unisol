@@ -19,6 +19,7 @@ function Icon({ d, d2, circle }: { d: string; d2?: string; circle?: { cx: number
 const ICONS = {
   diagnosticos: <Icon d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" d2="M9 12h6M9 16h4M9 3h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />,
   usuarios: <Icon d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" circle={{ cx: 9, cy: 7, r: 4 }} />,
+  estaduais: <Icon d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" circle={{ cx: 12, cy: 10, r: 3 }} />,
 }
 
 interface NavItem { href: string; label: string; iconKey: keyof typeof ICONS; perfis: Perfil[] }
@@ -34,7 +35,8 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'ADMINISTRAÇÃO',
     items: [
-      { href: '/admin', label: 'Usuários e UNISOLs', iconKey: 'usuarios', perfis: ['admin'] },
+      { href: '/admin/usuarios', label: 'Usuários', iconKey: 'usuarios', perfis: ['admin'] },
+      { href: '/admin/estaduais', label: 'Estaduais', iconKey: 'estaduais', perfis: ['admin'] },
     ],
   },
 ]
