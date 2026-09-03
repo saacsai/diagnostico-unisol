@@ -7,11 +7,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'CNPJ inválido — precisa ter 14 dígitos.' }, { status: 400 })
   }
 
-  const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
-    headers: { Accept: 'application/json' },
-  })
+  let res: Response
+  try {
+    res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    })
+  } catch (e) {
+    return NextResponse.json({ error: 'Falha de rede ao chamar BrasilAPI.', detalhe: String(e) }, { status: 502 })
+  }
   if (!res.ok) {
-    return NextResponse.json({ error: 'CNPJ não encontrado ou serviço indisponível.' }, { status: 404 })
+    const corpo = await res.text().catch(() => '')
+    return NextResponse.json({ error: 'CNPJ não encontrado ou serviço indisponível.', status: res.status, corpo }, { status: 404 })
   }
   const dados = await res.json()
 
