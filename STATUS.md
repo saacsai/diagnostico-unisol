@@ -308,15 +308,16 @@ pré-requisito antes de qualquer coisa do Dexie.
   único de sync (substituiu os 3 indicadores desencontrados que existiam antes — shell,
   Seção 02, Anexo A), montado no header do wizard e na barra mobile do `AppShell`.
 
-**Não testado em device real ainda** — o item mais importante da lista de verificação do
-plano é abrir num Android de campo, modo avião, por um período mais longo que a validade do
-token do Supabase, e confirmar que o técnico não é expulso pro login no meio do trabalho.
-Local e em produção só foi validado via `npm run build` + smoke test de rotas (sem simular
-offline de verdade ainda).
+**Testado por Luciano em modo avião, teste rápido: funcionou** — abrir/editar/salvar local
+sem sinal e sincronizar ao voltar passou no teste curto. **Ainda falta o teste que importa de
+verdade**: modo avião por um período mais longo que a validade do token do Supabase (o risco
+real da Fase A.0 — token expirar e travar o técnico fora do próprio trabalho), que um teste
+rápido não estressa.
 
 ## Próxima sessão — retomar por aqui
-1. **Testar em device Android real, modo avião** — é o teste que decide se a Fase A.0 (auth
-   offline-safe) funciona de verdade; sem isso, o resto da coleta offline é teórico.
+1. **Testar modo avião por período longo** (mais que a validade do token do Supabase) — teste
+   rápido já passou (editar/salvar local/sincronizar ao voltar), falta o cenário que decide se
+   a Fase A.0 (não expulsar o técnico pro login no meio do trabalho) aguenta um dia de campo.
 2. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
    empreendimentos do CooperaMais em `empreendimentos` + `empreendimento_projeto` (fonte:
    planilha/lista real da UNISOL, ainda não recebida).
