@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { getSupabase, Usuario } from '@/lib/supabase'
 import { AppSidebar } from './AppSidebar'
 
@@ -40,13 +40,15 @@ export function AppShell({ children, fullBleed = false }: { children: React.Reac
         <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 28 }} className="w-auto object-contain" />
       </div>
 
-      <AppSidebar
-        nome={usuario?.nome ?? ''}
-        email={usuario?.email ?? ''}
-        perfil={usuario?.perfil ?? 'aplicador'}
-        mobileAberto={menuMobile}
-        onMobileFechar={() => setMenuMobile(false)}
-      />
+      <Suspense fallback={null}>
+        <AppSidebar
+          nome={usuario?.nome ?? ''}
+          email={usuario?.email ?? ''}
+          perfil={usuario?.perfil ?? 'aplicador'}
+          mobileAberto={menuMobile}
+          onMobileFechar={() => setMenuMobile(false)}
+        />
+      </Suspense>
 
       <main
         className={fullBleed ? 'pt-14 lg:pt-0 lg:ml-[224px]' : 'p-4 lg:p-8 pt-[72px] lg:pt-8 lg:ml-[224px]'}

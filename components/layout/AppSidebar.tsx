@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { getSupabase, Perfil } from '@/lib/supabase'
 import { AvatarMenu } from './AvatarMenu'
 
@@ -22,6 +22,9 @@ const ICONS = {
   estaduais: <Icon d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" circle={{ cx: 12, cy: 10, r: 3 }} />,
   instituicao: <Icon d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M14 9h1M14 13h1M9 21v-4h6v4" />,
   projetos: <Icon d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" d2="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4" />,
+  filiadas: <Icon d="M12 2 2 7l10 5 10-5-10-5z" d2="M2 17l10 5 10-5M2 12l10 5 10-5" />,
+  tecnicos: <Icon d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" circle={{ cx: 12, cy: 7, r: 4 }} />,
+  documento: <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" d2="M14 2v6h6M9 13h6M9 17h6" />,
 }
 
 interface NavItem { href: string; label: string; iconKey: keyof typeof ICONS; perfis: Perfil[] }
@@ -29,18 +32,32 @@ interface NavSection { label: string; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'MÓDULOS',
+    label: 'DIAGNÓSTICOS',
     items: [
       { href: '/diagnosticos', label: 'Diagnósticos', iconKey: 'diagnosticos', perfis: ['aplicador', 'tecnico', 'admin'] },
-      { href: '/instituicao', label: 'Instituição', iconKey: 'instituicao', perfis: ['admin'] },
-      { href: '/projetos', label: 'Projetos', iconKey: 'projetos', perfis: ['admin'] },
+    ],
+  },
+  {
+    label: 'CADASTROS',
+    items: [
+      { href: '/instituicao', label: 'Nacional', iconKey: 'instituicao', perfis: ['admin'] },
+      { href: '/admin/estaduais', label: 'Estaduais', iconKey: 'estaduais', perfis: ['admin'] },
+      { href: '/filiadas', label: 'Filiadas', iconKey: 'filiadas', perfis: ['admin'] },
+      { href: '/tecnicos', label: 'Técnicos', iconKey: 'tecnicos', perfis: ['admin'] },
+    ],
+  },
+  {
+    label: 'PROJETOS',
+    items: [
+      { href: '/projetos?categoria=emenda', label: 'Emendas', iconKey: 'documento', perfis: ['admin'] },
+      { href: '/projetos?categoria=mrosc', label: 'MROSC', iconKey: 'documento', perfis: ['admin'] },
+      { href: '/projetos?categoria=outro', label: 'Outros', iconKey: 'documento', perfis: ['admin'] },
     ],
   },
   {
     label: 'ADMINISTRAÇÃO',
     items: [
       { href: '/admin/usuarios', label: 'Usuários', iconKey: 'usuarios', perfis: ['admin'] },
-      { href: '/admin/estaduais', label: 'Estaduais', iconKey: 'estaduais', perfis: ['admin'] },
     ],
   },
 ]
@@ -55,6 +72,15 @@ export function AppSidebar({
   onMobileFechar?: () => void
 }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  function estaAtivo(href: string) {
+    const [path, query] = href.split('?')
+    if (pathname !== path) return false
+    if (!query) return !searchParams.get('categoria')
+    const params = new URLSearchParams(query)
+    return searchParams.get('categoria') === params.get('categoria')
+  }
 
   async function sair() {
     await getSupabase().auth.signOut()
@@ -89,7 +115,7 @@ export function AppSidebar({
                 </p>
                 <div className="space-y-0.5">
                   {itens.map(item => {
-                    const ativo = pathname === item.href
+                    const ativo = estaAtivo(item.href)
                     return (
                       <a key={item.href} href={item.href}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors"

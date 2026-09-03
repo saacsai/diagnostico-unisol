@@ -40,6 +40,7 @@ export type VinculacaoUnisol  = 'filiado' | 'em_processo' | 'nao_filiado' | 'nao
 export type StatusEmpProjeto  = 'ativo' | 'inativo' | 'encerrado'
 export type StatusEstadual    = 'formalizada' | 'em_constituicao'
 export type StatusProjeto     = 'em_concorrencia' | 'em_fase_aprovacao' | 'em_execucao' | 'encerrado'
+export type CategoriaInstrumento = 'emenda' | 'mrosc' | 'outro'
 export type EntidadeTipo      = 'unisol_brasil' | 'unisol_estadual' | 'projeto' | 'diagnostico'
 export type EntidadeDiretoria = 'unisol_brasil' | 'unisol_estadual'
 
@@ -167,6 +168,7 @@ export interface Projeto {
   financiador: string | null
   orgao_responsavel: string | null
   tipo_instrumento: string | null
+  categoria_instrumento: CategoriaInstrumento
   numero_termo_fomento: string | null
   numero_transferegov: string | null
   status: StatusProjeto
@@ -193,6 +195,8 @@ export interface Diagnostico {
   versao: number
   /** Rótulo legível da versão, ex: 'T0', 'T1-2027' */
   rotulo_versao: string | null
+  /** Breve relato do que mudou nesta versão em relação à anterior (opcional) */
+  relato_versao: string | null
   /** Snapshot no momento da criação — fonte de verdade é empreendimentos.nome_fantasia */
   nome_empreendimento: string | null
   regiao: string | null

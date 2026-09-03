@@ -27,5 +27,6 @@ export const TIPOS_DOCUMENTO = [
   { value: 'cnd_estadual', label: 'CND Estadual' },
   { value: 'cnd_municipal', label: 'CND Municipal' },
   { value: 'plano_trabalho', label: 'Plano de Trabalho' },
+  { value: 'relatorio_evolucao', label: 'Relatório de evolução' },
   { value: 'outro', label: 'Outro' },
 ]

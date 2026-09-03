@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Projeto, StatusProjeto } from '@/lib/supabase'
+import { getSupabase, Projeto, StatusProjeto, CategoriaInstrumento } from '@/lib/supabase'
 import { Drawer } from '@/components/layout/Drawer'
-
-const VAZIO = { nome: '', resumo: '', financiador: '', status: 'em_execucao' as StatusProjeto }
 
 const LABEL_STATUS: Record<StatusProjeto, { texto: string; cor: string; bg: string }> = {
   em_concorrencia: { texto: 'Em concorrência', cor: '#6b7280', bg: '#f3f4f6' },
@@ -13,25 +11,34 @@ const LABEL_STATUS: Record<StatusProjeto, { texto: string; cor: string; bg: stri
   encerrado: { texto: 'Encerrado', cor: '#6b7280', bg: '#f3f4f6' },
 }
 
-export function ProjetosLista() {
+export const LABEL_CATEGORIA: Record<CategoriaInstrumento, string> = {
+  emenda: 'Emenda',
+  mrosc: 'MROSC',
+  outro: 'Outro',
+}
+
+export function ProjetosLista({ categoria }: { categoria?: CategoriaInstrumento }) {
   const [lista, setLista] = useState<Projeto[]>([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [drawer, setDrawer] = useState(false)
-  const [form, setForm] = useState(VAZIO)
+  const [form, setForm] = useState({ nome: '', resumo: '', financiador: '', status: 'em_execucao' as StatusProjeto, categoria_instrumento: categoria ?? 'outro' as CategoriaInstrumento })
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
 
   async function carregar() {
     setCarregando(true)
-    const { data } = await getSupabase().from('projetos').select('*').order('nome')
+    let q = getSupabase().from('projetos').select('*').order('nome')
+    if (categoria) q = q.eq('categoria_instrumento', categoria)
+    const { data } = await q
     setLista((data as Projeto[]) || [])
     setCarregando(false)
   }
-  useEffect(() => { carregar() }, [])
+  useEffect(() => { carregar() }, [categoria]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function abrirNovo() {
-    setForm(VAZIO); setErro(''); setDrawer(true)
+    setForm({ nome: '', resumo: '', financiador: '', status: 'em_execucao', categoria_instrumento: categoria ?? 'outro' })
+    setErro(''); setDrawer(true)
   }
 
   async function salvar(e: React.FormEvent) {
@@ -49,7 +56,9 @@ export function ProjetosLista() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>Projetos</h1>
+        <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>
+          Projetos{categoria ? ` — ${LABEL_CATEGORIA[categoria]}` : ''}
+        </h1>
         <button onClick={abrirNovo} className="text-sm font-medium text-white rounded-lg px-4 py-2" style={{ background: 'var(--primary)' }}>
           + Novo projeto
         </button>
@@ -68,6 +77,7 @@ export function ProjetosLista() {
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Nome</th>
+                {!categoria && <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Categoria</th>}
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Financiador</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
               </tr>
@@ -77,6 +87,7 @@ export function ProjetosLista() {
                 <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer"
                   onClick={() => window.location.href = `/projetos/${p.id}`}>
                   <td className="px-4 py-3 font-medium text-gray-900">{p.nome}</td>
+                  {!categoria && <td className="px-4 py-3 text-gray-500">{LABEL_CATEGORIA[p.categoria_instrumento]}</td>}
                   <td className="px-4 py-3 text-gray-500">{p.financiador || '—'}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: LABEL_STATUS[p.status].bg, color: LABEL_STATUS[p.status].cor }}>
@@ -86,7 +97,7 @@ export function ProjetosLista() {
                 </tr>
               ))}
               {filtrados.length === 0 && (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-400">Nenhum projeto cadastrado ainda.</td></tr>
+                <tr><td colSpan={categoria ? 3 : 4} className="px-4 py-8 text-center text-sm text-gray-400">Nenhum projeto cadastrado ainda.</td></tr>
               )}
             </tbody>
           </table>
@@ -99,6 +110,13 @@ export function ProjetosLista() {
             <label className="block text-xs font-medium text-gray-600 mb-1">Nome *</label>
             <input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} required autoFocus
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Categoria</label>
+            <select value={form.categoria_instrumento} onChange={e => setForm(p => ({ ...p, categoria_instrumento: e.target.value as CategoriaInstrumento }))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]">
+              {(Object.keys(LABEL_CATEGORIA) as CategoriaInstrumento[]).map(c => <option key={c} value={c}>{LABEL_CATEGORIA[c]}</option>)}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Resumo</label>
