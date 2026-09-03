@@ -7,18 +7,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'CNPJ inválido — precisa ter 14 dígitos.' }, { status: 400 })
   }
 
-  let res: Response
-  try {
-    res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    })
-  } catch (e) {
-    return NextResponse.json({ error: 'Falha de rede ao chamar BrasilAPI.', detalhe: String(e) }, { status: 502 })
-  }
+  // BrasilAPI bloqueia (403) requisições sem User-Agent de navegador — o fetch padrão do
+  // Node/Vercel não manda um, precisa forçar.
+  const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+    cache: 'no-store',
+  })
   if (!res.ok) {
-    const corpo = await res.text().catch(() => '')
-    return NextResponse.json({ error: 'CNPJ não encontrado ou serviço indisponível.', status: res.status, corpo }, { status: 404 })
+    return NextResponse.json({ error: 'CNPJ não encontrado ou serviço indisponível.' }, { status: 404 })
   }
   const dados = await res.json()
 
