@@ -21,6 +21,7 @@ const ICONS = {
   usuarios: <Icon d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" circle={{ cx: 9, cy: 7, r: 4 }} />,
   estaduais: <Icon d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" circle={{ cx: 12, cy: 10, r: 3 }} />,
   instituicao: <Icon d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M9 13h1M14 9h1M14 13h1M9 21v-4h6v4" />,
+  projetos: <Icon d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" d2="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4" />,
 }
 
 interface NavItem { href: string; label: string; iconKey: keyof typeof ICONS; perfis: Perfil[] }
@@ -32,6 +33,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/diagnosticos', label: 'Diagnósticos', iconKey: 'diagnosticos', perfis: ['aplicador', 'tecnico', 'admin'] },
       { href: '/instituicao', label: 'Instituição', iconKey: 'instituicao', perfis: ['admin'] },
+      { href: '/projetos', label: 'Projetos', iconKey: 'projetos', perfis: ['admin'] },
     ],
   },
   {
