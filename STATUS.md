@@ -257,18 +257,74 @@ responder no chat) — isso sobrescreve o conteúdo da migration. Sempre conferi
 arquivo antes de commitar quando isso acontecer, e restaurar a partir do que foi escrito
 originalmente (está registrado neste mesmo STATUS.md e no histórico da conversa).
 
+## 2026-09-03 (mesmo dia, rodada final) — Coleta offline de verdade no wizard (Dexie + sync)
+
+O PWA só cobria o "shell" (instala/abre sem sinal) — todo dado gravava direto no Supabase,
+falhando em silêncio sem sinal. Essa rodada implementou a Fase 2 do plano original (offline de
+verdade), com escopo confirmado: só o wizard de diagnóstico (`/diagnosticos`) fica offline;
+todo o resto continua online-only, já bloqueado no mobile via `SoDesktop`. Anexo A (upload de
+evidências) ficou de fora desta rodada por decisão do Luciano — evidências normalmente são
+anexadas depois, com sinal, não durante a visita.
+
+Duas rodadas de exploração + uma de crítica de design rodaram antes de codar (registradas no
+plano `.claude/plans/twinkling-imagining-fairy.md`). Achado mais importante: **o gate de
+autenticação não era offline-safe** — `getSession()`/`.from('usuarios')` falhando sem sinal
+por mais tempo que a validade do token trancava o técnico fora do próprio trabalho em
+andamento, e o fallback de perfil pra `'aplicador'` tirava acesso às Seções 17-18 de um
+técnico de verdade após qualquer reload (comum, dado `reloadOnOnline: true` no PWA). Virou
+pré-requisito antes de qualquer coisa do Dexie.
+
+**O que foi construído:**
+- `lib/supabase.ts`: `getSupabase()` virou singleton (antes criava um `createClient()` novo a
+  cada chamada — várias instâncias de GoTrueClient competindo pelo mesmo localStorage).
+- `AppShell.tsx`: cacheia a linha de `usuarios` (id/nome/perfil) numa tabela Dexie
+  (`sessaoUsuario`) a cada leitura bem-sucedida; cai nesse cache em vez de travar no login ou
+  fixar `'aplicador'` quando a leitura falha offline. `app/diagnosticos/page.tsx` perdeu o
+  gate de auth próprio (redundante e sem esse fallback — bloqueava antes do AppShell montar).
+- `lib/offline/db.ts` (novo): Dexie, tabelas `diagnosticos`/`empreendimentos` (espelham as
+  tabelas do Supabase + dirty-flags: `_dirtyRespostas`/`_dirtyAnaliseTecnica` no diagnóstico,
+  `_dirty` no empreendimento — canais independentes pra não sobrescrever `analise_tecnica` de
+  um colega técnico com uma cópia local desatualizada de `respostas`), `referencia` (cache de
+  `unisol_estaduais`), `sessaoUsuario`.
+- `lib/diagnostico/useAutosave.ts` (reescrito, mesma assinatura exportada — contrato que já
+  existia desde a criação do arquivo, pra não precisar tocar nas 20 seções do wizard): grava
+  no Dexie na hora, sem chamada de rede nenhuma. Cobre 18 das 20 seções de graça + a Seção 02
+  (que já tinha seu próprio `useAutosaveEmpreendimento`).
+- `lib/diagnostico/useReferenciaEstaduais.ts` (novo): cache reativo (`useLiveQuery`) do
+  dropdown de Estaduais da Seção 02, atualiza em segundo plano quando online.
+- `DiagnosticoWizardShell.tsx`: carregamento vira Dexie-primeiro — lê local na hora; se
+  online, busca do Supabase e mescla (nunca sobrescreve um campo com edição local ainda não
+  sincronizada); se offline e nada local, mostra aviso claro em vez do antigo "não encontrado".
+- `lib/offline/sync.ts` (novo, motor de sync): drena os registros dirty no boot, no evento
+  `online`, e num intervalo de segurança de 45s (sinal fraco ≠ `navigator.onLine` confiável).
+  Resolução de `versao`: antes de inserir um diagnóstico novo, calcula `max(versao)+1` pro
+  empreendimento — dois técnicos offline no mesmo dia pra mesma cooperativa não colidem, o
+  segundo vira v2 automaticamente (decisão confirmada, sem fila de revisão manual).
+- `NovoDiagnostico.tsx`/`ListaDiagnosticos.tsx`: criação de diagnóstico e a lista funcionam
+  100% offline a partir de dados já vistos com sinal (todo `carregar()` online também esquenta
+  o cache Dexie); lista mostra badge "pendente de sincronizar" por linha e um aviso "sem sinal"
+  quando cai pro fallback local.
+- `lib/offline/useSyncStatus.ts` + `components/layout/SyncStatusBadge.tsx` (novos): indicador
+  único de sync (substituiu os 3 indicadores desencontrados que existiam antes — shell,
+  Seção 02, Anexo A), montado no header do wizard e na barra mobile do `AppShell`.
+
+**Não testado em device real ainda** — o item mais importante da lista de verificação do
+plano é abrir num Android de campo, modo avião, por um período mais longo que a validade do
+token do Supabase, e confirmar que o técnico não é expulso pro login no meio do trabalho.
+Local e em produção só foi validado via `npm run build` + smoke test de rotas (sem simular
+offline de verdade ainda).
+
 ## Próxima sessão — retomar por aqui
-1. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
+1. **Testar em device Android real, modo avião** — é o teste que decide se a Fase A.0 (auth
+   offline-safe) funciona de verdade; sem isso, o resto da coleta offline é teórico.
+2. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
    empreendimentos do CooperaMais em `empreendimentos` + `empreendimento_projeto` (fonte:
    planilha/lista real da UNISOL, ainda não recebida).
-2. Fase 2 do plano original (`.claude/plans/twinkling-imagining-fairy.md`): offline de
-   verdade (Dexie) — escopo confirmado como exclusivo do wizard de diagnóstico, todo o resto
-   (Filiadas, Estaduais, Projetos, Usuários, Técnicos) fica online-only e bloqueado no mobile
-   (já está, via `SoDesktop`).
-3. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).
-4. `numero_termo_fomento`/`numero_transferegov` do CooperaMais ainda não preenchidos — Luciano
+3. Anexo A offline (upload de evidências) — deferido nesta rodada, decisão do Luciano.
+4. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).
+5. `numero_termo_fomento`/`numero_transferegov` do CooperaMais ainda não preenchidos — Luciano
    vai passar os números certos.
-5. CNPJ das estaduais sem dado ainda (PI/CE/PB/MT/AC/SE/MG/SC).
-6. Equipe é só alocação (cargo texto livre) — sem período obrigatório de vigência na UI
+6. CNPJ das estaduais sem dado ainda (PI/CE/PB/MT/AC/SE/MG/SC).
+7. Equipe é só alocação (cargo texto livre) — sem período obrigatório de vigência na UI
    (`data_saida`/`ativo` existem no schema mas não têm campo no drawer ainda); avaliar se
    precisa antes de escalar o uso.
