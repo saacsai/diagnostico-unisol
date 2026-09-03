@@ -4,8 +4,9 @@ import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 
-const PRIMARY = '#1B5E37'
-const ACCENT  = '#E8F5EC'
+const PRIMARY  = '#1B5E37'
+const CARD_BG  = '#F5F5F5'
+const BORDER   = '#E5E5E5'
 
 export default function LoginPage() {
   return (
@@ -56,17 +57,17 @@ function LoginInner() {
   }
 
   if (mensagem) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #E8F5EC 100%)' }}>
-      <div className="rounded-xl shadow-xl w-full max-w-sm overflow-hidden" style={{ background: PRIMARY }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#ffffff' }}>
+      <div className="rounded-xl shadow-xl w-full max-w-sm overflow-hidden border" style={{ background: CARD_BG, borderColor: BORDER }}>
         <div className="px-6 pt-8 pb-8 text-center space-y-3">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto" style={{ background: 'rgba(255,255,255,0.15)' }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto" style={{ background: 'var(--primary-light)' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={PRIMARY} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <p className="text-sm font-semibold text-white">Verifique seu email</p>
-          <p className="text-sm" style={{ color: ACCENT }}>{mensagem}</p>
-          <button onClick={() => { setMensagem(''); setModo('login') }} className="text-xs hover:underline" style={{ color: ACCENT }}>
+          <p className="text-sm font-semibold text-gray-900">Verifique seu email</p>
+          <p className="text-sm text-gray-500">{mensagem}</p>
+          <button onClick={() => { setMensagem(''); setModo('login') }} className="text-xs hover:underline" style={{ color: PRIMARY }}>
             Voltar ao login
           </button>
         </div>
@@ -75,27 +76,24 @@ function LoginInner() {
   )
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #E8F5EC 100%)' }}>
-      <div className="rounded-xl shadow-xl w-full max-w-sm overflow-hidden" style={{ background: PRIMARY }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#ffffff' }}>
+      <div className="rounded-xl shadow-xl w-full max-w-sm overflow-hidden border" style={{ background: CARD_BG, borderColor: BORDER }}>
 
         {/* Cabeçalho */}
-        <div className="px-6 pt-8 pb-5 flex flex-col items-center gap-2 text-center">
-          <div className="bg-white rounded-lg px-4 py-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_unisol.png" alt="UNISOL Brasil" className="h-10 w-auto object-contain" />
-          </div>
-          <p className="text-xs tracking-wide" style={{ color: ACCENT }}>Diagnóstico Participativo · CooperaMais</p>
+        <div className="px-6 pt-8 pb-5 flex flex-col items-center text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_unisol.png" alt="UNISOL Brasil" className="h-12 w-auto object-contain" />
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }} />
+        <div style={{ borderTop: `1px solid ${BORDER}` }} />
 
         {/* Formulário */}
         <div className="px-6 py-6">
           <div className="mb-5">
-            <p className="text-base font-semibold text-white">
+            <p className="text-base font-semibold text-gray-900">
               {modo === 'login' ? 'Acessar sistema' : 'Recuperar senha'}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: ACCENT }}>
+            <p className="text-xs mt-0.5 text-gray-500">
               {modo === 'login' ? 'Entre com seu email e senha.' : 'Informe seu email para receber o link.'}
             </p>
           </div>
@@ -103,37 +101,38 @@ function LoginInner() {
           {modo === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Email</label>
+                <label className="block text-xs font-medium mb-1 text-gray-600">Email</label>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
                   required autoFocus
-                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border-2 border-transparent focus:border-white/40"
+                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border border-gray-200 focus:border-[var(--primary)]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Senha</label>
+                <label className="block text-xs font-medium mb-1 text-gray-600">Senha</label>
                 <input
                   type="password" value={senha} onChange={e => setSenha(e.target.value)}
                   required
-                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border-2 border-transparent focus:border-white/40"
+                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border border-gray-200 focus:border-[var(--primary)]"
                 />
                 <button
                   type="button"
                   onClick={() => { setModo('recuperar'); setErro('') }}
                   className="mt-1.5 text-xs hover:underline float-right"
-                  style={{ color: ACCENT }}
+                  style={{ color: PRIMARY }}
                 >
                   Esqueci minha senha
                 </button>
               </div>
               {erro && (
-                <p className="text-xs rounded-lg p-2 clear-both" style={{ background: 'rgba(255,255,255,0.12)', color: '#fca5a5' }}>
+                <p className="text-xs rounded-lg p-2 clear-both bg-red-50 text-red-600 border border-red-200">
                   {erro}
                 </p>
               )}
               <button
                 type="submit" disabled={loading}
-                className="w-full text-sm font-semibold rounded-lg py-2.5 disabled:opacity-60 transition-all clear-both bg-[#E8F5EC] text-[#1B5E37] hover:bg-white"
+                className="w-full text-sm font-semibold rounded-lg py-2.5 disabled:opacity-60 transition-all clear-both text-white"
+                style={{ background: PRIMARY }}
               >
                 {loading ? 'Entrando…' : 'Entrar'}
               </button>
@@ -141,21 +140,22 @@ function LoginInner() {
           ) : (
             <form onSubmit={handleRecuperar} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Email</label>
+                <label className="block text-xs font-medium mb-1 text-gray-600">Email</label>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)}
                   required autoFocus
-                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border-2 border-transparent focus:border-white/40"
+                  className="w-full bg-white rounded-lg px-3 py-2 text-sm text-gray-900 outline-none border border-gray-200 focus:border-[var(--primary)]"
                 />
               </div>
               {erro && (
-                <p className="text-xs rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.12)', color: '#fca5a5' }}>
+                <p className="text-xs rounded-lg p-2 bg-red-50 text-red-600 border border-red-200">
                   {erro}
                 </p>
               )}
               <button
                 type="submit" disabled={loading}
-                className="w-full text-sm font-semibold rounded-lg py-2.5 disabled:opacity-50 transition-all bg-[#E8F5EC] text-[#1B5E37] hover:bg-white"
+                className="w-full text-sm font-semibold rounded-lg py-2.5 disabled:opacity-50 transition-all text-white"
+                style={{ background: PRIMARY }}
               >
                 {loading ? 'Enviando…' : 'Enviar link'}
               </button>
@@ -163,7 +163,7 @@ function LoginInner() {
                 type="button"
                 onClick={() => { setModo('login'); setErro('') }}
                 className="w-full text-xs hover:underline"
-                style={{ color: ACCENT }}
+                style={{ color: PRIMARY }}
               >
                 Voltar ao login
               </button>

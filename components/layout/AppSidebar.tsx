@@ -26,7 +26,7 @@ interface NavSection { label: string; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'DIAGNÓSTICO',
+    label: 'MÓDULOS',
     items: [
       { href: '/diagnosticos', label: 'Diagnósticos', iconKey: 'diagnosticos', perfis: ['aplicador', 'tecnico', 'admin'] },
     ],
@@ -61,19 +61,16 @@ export function AppSidebar({
         <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={onMobileFechar} />
       )}
       <aside
-        style={{ width: SIDEBAR_W, minWidth: SIDEBAR_W, background: 'var(--primary)' }}
+        style={{ width: SIDEBAR_W, minWidth: SIDEBAR_W, background: '#F5F5F5', borderRight: '1px solid #E5E5E5' }}
         className={`fixed left-0 top-0 h-screen flex flex-col z-30 transition-transform duration-200 ease-in-out
           ${mobileAberto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         <div className="px-4 pt-5 pb-4">
-          <div className="bg-white rounded-lg px-2.5 py-2 inline-block">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo_unisol.png" alt="UNISOL Brasil" className="h-7 w-auto object-contain" />
-          </div>
-          <p className="mt-1.5 text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Diagnóstico · CooperaMais</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 34 }} className="w-auto object-contain" />
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }} />
+        <div style={{ borderTop: '1px solid #E5E5E5' }} />
 
         <nav className="flex-1 px-2 py-3 overflow-y-auto">
           {NAV_SECTIONS.map((section, si) => {
@@ -81,7 +78,7 @@ export function AppSidebar({
             if (itens.length === 0) return null
             return (
               <div key={section.label} className={si > 0 ? 'mt-3' : ''}>
-                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest text-gray-400">
                   {section.label}
                 </p>
                 <div className="space-y-0.5">
@@ -91,8 +88,8 @@ export function AppSidebar({
                       <a key={item.href} href={item.href}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors"
                         style={{
-                          background: ativo ? 'rgba(255,255,255,0.15)' : 'transparent',
-                          color: ativo ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                          background: ativo ? '#E5E5E5' : 'transparent',
+                          color: ativo ? 'var(--primary-dark)' : '#4b5563',
                           fontWeight: ativo ? 600 : 400,
                         }}>
                         <span className="flex-shrink-0">{ICONS[item.iconKey]}</span>
@@ -106,7 +103,7 @@ export function AppSidebar({
           })}
         </nav>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }} />
+        <div style={{ borderTop: '1px solid #E5E5E5' }} />
         <div className="px-2 py-2">
           <AvatarMenu nome={nome} email={email} onSair={sair} />
         </div>

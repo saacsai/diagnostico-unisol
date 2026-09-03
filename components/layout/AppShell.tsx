@@ -30,13 +30,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-20 h-14 flex items-center px-4 gap-3" style={{ background: 'var(--primary)' }}>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-20 h-14 flex items-center px-4 gap-3" style={{ background: '#F5F5F5', borderBottom: '1px solid #E5E5E5' }}>
         <button onClick={() => setMenuMobile(true)} className="flex flex-col gap-1.5 p-1" aria-label="Abrir menu">
-          <span className="block w-5 h-0.5 bg-white/80 rounded" />
-          <span className="block w-5 h-0.5 bg-white/80 rounded" />
-          <span className="block w-5 h-0.5 bg-white/80 rounded" />
+          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
+          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
+          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
         </button>
-        <span className="text-white font-bold text-sm tracking-wide">Diagnóstico UNISOL</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 28 }} className="w-auto object-contain" />
       </div>
 
       <AppSidebar

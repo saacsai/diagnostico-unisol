@@ -57,19 +57,19 @@ export function AvatarMenu({ nome, email, onSair }: { nome: string; email: strin
       <button
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left"
-        style={{ background: open ? 'rgba(255,255,255,0.12)' : 'transparent' }}
-        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-        onMouseLeave={e => (e.currentTarget.style.background = open ? 'rgba(255,255,255,0.12)' : 'transparent')}
+        style={{ background: open ? '#E5E5E5' : 'transparent' }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#E5E5E5')}
+        onMouseLeave={e => (e.currentTarget.style.background = open ? '#E5E5E5' : 'transparent')}
       >
         <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold"
           style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)' }}>
           {iniciais(nome || email)}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate text-white">{nome || email}</div>
-          <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.55)' }}>{email}</div>
+          <div className="text-sm font-medium truncate text-gray-800">{nome || email}</div>
+          <div className="text-xs truncate text-gray-500">{email}</div>
         </div>
-        <span style={{ color: 'rgba(255,255,255,0.5)' }}><IconChevron up={open} /></span>
+        <span className="text-gray-400"><IconChevron up={open} /></span>
       </button>
     </div>
   )
