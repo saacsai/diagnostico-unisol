@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Empreendimento, UnisolEstadual, Diagnostico } from '@/lib/supabase'
+import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { Drawer } from '@/components/layout/Drawer'
+import { Secao02Identificacao } from '@/components/diagnostico/secoes/Secao02Identificacao'
 
 export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string }) {
   const [emp, setEmp] = useState<Empreendimento | null>(null)
-  const [estadual, setEstadual] = useState<UnisolEstadual | null>(null)
   const [versoes, setVersoes] = useState<Diagnostico[]>([])
   const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
   const [urlAnexo, setUrlAnexo] = useState<Record<string, string>>({})
@@ -20,13 +20,6 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
     const sb = getSupabase()
     const { data: dadosEmp } = await sb.from('empreendimentos').select('*').eq('id', empreendimentoId).single()
     setEmp(dadosEmp as Empreendimento)
-
-    if (dadosEmp?.unisol_estadual_id) {
-      const { data: dadosEst } = await sb.from('unisol_estaduais').select('*').eq('id', dadosEmp.unisol_estadual_id).single()
-      setEstadual(dadosEst as UnisolEstadual)
-    } else {
-      setEstadual(null)
-    }
 
     const { data: diags } = await sb
       .from('diagnosticos')
@@ -91,25 +84,8 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div><span className="text-gray-400 text-xs block">Razão social</span>{emp.razao_social || '—'}</div>
-          <div><span className="text-gray-400 text-xs block">CNPJ</span>{emp.cnpj || '—'}</div>
-          <div><span className="text-gray-400 text-xs block">Município/UF</span>{emp.municipio}{emp.uf ? `/${emp.uf}` : ''}</div>
-          <div><span className="text-gray-400 text-xs block">Forma organizativa</span>{emp.forma_organizativa || '—'}</div>
-          <div>
-            <span className="text-gray-400 text-xs block">Filiação</span>
-            <div className="flex flex-wrap gap-1 mt-0.5">
-              {emp.vinculacao_unisol === 'filiado' && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: '#A8D5B5', color: '#134529' }}>Nacional</span>
-              )}
-              {estadual && (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: '#dbeafe', color: '#1d4ed8' }}>{estadual.nome}</span>
-              )}
-              {emp.vinculacao_unisol !== 'filiado' && !estadual && <span className="text-xs text-gray-400">—</span>}
-            </div>
-          </div>
-          <div><span className="text-gray-400 text-xs block">Pessoa de referência</span>{emp.pessoa_referencia_nome || '—'}</div>
-        </div>
+        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--primary)' }}>Cadastro</h2>
+        <Secao02Identificacao empreendimento={emp} onChange={setEmp} />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">

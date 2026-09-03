@@ -6,6 +6,7 @@ import { useAutosaveEmpreendimento } from '@/lib/diagnostico/useAutosave'
 import { CampoTexto } from '../campos/CampoTexto'
 import { CampoSelect } from '../campos/CampoSelect'
 import { CampoNumero } from '../campos/CampoNumero'
+import { BuscarCnpjBotao } from '@/components/institucional/BuscarCnpjBotao'
 
 export function Secao02Identificacao({
   empreendimento, onChange,
@@ -13,7 +14,7 @@ export function Secao02Identificacao({
   empreendimento: Empreendimento
   onChange: (e: Empreendimento) => void
 }) {
-  const { salvar } = useAutosaveEmpreendimento(empreendimento.id)
+  const { status, salvar } = useAutosaveEmpreendimento(empreendimento.id)
   const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
 
   useEffect(() => {
@@ -30,6 +31,11 @@ export function Secao02Identificacao({
 
   return (
     <div className="space-y-4">
+      {status !== 'idle' && (
+        <p className="text-xs font-medium text-right" style={{ color: status === 'salvando' ? '#9ca3af' : 'var(--primary)' }}>
+          {status === 'salvando' ? 'Salvando…' : status === 'erro' ? 'Erro ao salvar' : 'Salvo'}
+        </p>
+      )}
       <CampoTexto label="2.1 Razão social / nome formal" value={empreendimento.razao_social ?? ''} onChange={v => set({ razao_social: v })} />
       <CampoTexto label="2.2 Nome fantasia" value={empreendimento.nome_fantasia ?? ''} onChange={v => set({ nome_fantasia: v })} />
       <CampoSelect label="2.3 Forma organizativa" value={empreendimento.forma_organizativa ?? ''}
@@ -39,7 +45,19 @@ export function Secao02Identificacao({
           { value: 'grupo_informal', label: 'Grupo informal' }, { value: 'rede_central', label: 'Rede/central' },
           { value: 'empreendimento_comunitario', label: 'Empreendimento comunitário' }, { value: 'outra', label: 'Outra' },
         ]} />
-      <CampoTexto label="2.4 CNPJ (se houver)" value={empreendimento.cnpj ?? ''} onChange={v => set({ cnpj: v })} />
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <CampoTexto label="2.4 CNPJ (se houver)" value={empreendimento.cnpj ?? ''} onChange={v => set({ cnpj: v })} />
+        </div>
+        <div className="pb-0.5">
+          <BuscarCnpjBotao cnpj={empreendimento.cnpj ?? ''} onDados={d => set({
+            razao_social: empreendimento.razao_social || d.razao_social,
+            endereco: d.endereco || empreendimento.endereco,
+            municipio: d.municipio || empreendimento.municipio,
+            uf: d.uf || empreendimento.uf,
+          })} />
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <CampoNumero label="2.5 Ano de criação" value={empreendimento.ano_criacao} onChange={v => set({ ano_criacao: v })} />
         <CampoNumero label="Ano de formalização" value={empreendimento.ano_formalizacao} onChange={v => set({ ano_formalizacao: v })} />
