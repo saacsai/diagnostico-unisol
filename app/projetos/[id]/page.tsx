@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getSupabase, Projeto, StatusProjeto } from '@/lib/supabase'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminGate } from '@/components/layout/AdminGate'
+import { SoDesktop } from '@/components/layout/SoDesktop'
 import { CampoTexto } from '@/components/diagnostico/campos/CampoTexto'
 import { CampoSelect } from '@/components/diagnostico/campos/CampoSelect'
 import { CampoData } from '@/components/diagnostico/campos/CampoData'
@@ -14,7 +15,7 @@ export default function ProjetoDetalhePage({ params }: { params: { id: string } 
   return (
     <AppShell>
       <AdminGate>
-        <ProjetoConteudo id={params.id} />
+        <SoDesktop><ProjetoConteudo id={params.id} /></SoDesktop>
       </AdminGate>
     </AppShell>
   )

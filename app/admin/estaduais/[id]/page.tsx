@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getSupabase, UnisolEstadual } from '@/lib/supabase'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminGate } from '@/components/layout/AdminGate'
+import { SoDesktop } from '@/components/layout/SoDesktop'
 import { CampoTexto } from '@/components/diagnostico/campos/CampoTexto'
 import { CampoSelect } from '@/components/diagnostico/campos/CampoSelect'
 import { PerfilEntidadeForm, CamposPerfilEntidade } from '@/components/institucional/PerfilEntidadeForm'
@@ -14,7 +15,7 @@ export default function EstadualDetalhePage({ params }: { params: { id: string }
   return (
     <AppShell>
       <AdminGate>
-        <EstadualConteudo id={params.id} />
+        <SoDesktop><EstadualConteudo id={params.id} /></SoDesktop>
       </AdminGate>
     </AppShell>
   )

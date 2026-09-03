@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getSupabase, UnisolBrasil } from '@/lib/supabase'
 import { AppShell } from '@/components/layout/AppShell'
 import { AdminGate } from '@/components/layout/AdminGate'
+import { SoDesktop } from '@/components/layout/SoDesktop'
 import { CampoTexto } from '@/components/diagnostico/campos/CampoTexto'
 import { PerfilEntidadeForm } from '@/components/institucional/PerfilEntidadeForm'
 import { DiretoriaAdmin } from '@/components/institucional/DiretoriaAdmin'
@@ -13,7 +14,7 @@ export default function InstituicaoPage() {
   return (
     <AppShell>
       <AdminGate>
-        <InstituicaoConteudo />
+        <SoDesktop><InstituicaoConteudo /></SoDesktop>
       </AdminGate>
     </AppShell>
   )
