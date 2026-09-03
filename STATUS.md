@@ -206,6 +206,57 @@ Rodada de ajustes sobre a camada institucional (que já estava completa e em pro
 - Build local limpo, deploy em produção (`sistema.unisolbrasil.org.br`), rotas novas + filtro
   de Projetos confirmados via curl (200 em todas).
 
+## 2026-09-03 (mesmo dia, rodada seguinte) — Filiadas ganha CRUD real, Técnicos vira banco de
+## talentos, Equipe aloca técnico↔projeto, edição liberada em Diretoria/Usuários/Documentos
+
+Sequência de ajustes pedidos depois de usar as telas do dia anterior:
+
+- **Diagnósticos**: drawer "+ Novo diagnóstico" simplificado — só lista Filiadas já
+  cadastradas e ainda sem diagnóstico (tirou o modo "cadastrar novo empreendimento" e o
+  vínculo fixo com o projeto CooperaMais, que não fazia mais sentido no modelo atual). Ganhou
+  filtro Nacional/Estadual/Todos (só Estaduais `status='formalizada'` aparecem) antes do campo
+  de busca — busca filtra dentro do que já foi selecionado, não substitui.
+- **Filiadas ganha cadastro de verdade** (`CadastrarFiliadaDrawer.tsx`): select "a quem será
+  filiada" (Nacional OU uma Estadual — escolha única na criação, editável depois) → nome
+  fantasia → CNPJ com autolookup (BrasilAPI) → contato → upload opcional da ficha de filiação.
+  Migration 07 libera `documentos_institucionais.entidade_tipo='empreendimento'` (não existia).
+  Ganhou também o mesmo filtro Nacional/Estadual/Todos da lista de Diagnósticos.
+- **Detalhe da Filiada virou cadastro editável com autosave** — reaproveita
+  `Secao02Identificacao` (a mesma Seção 2 do wizard) dentro da página, agora com botão de
+  busca de CNPJ. Consequência importante: a vinculação Nacional/Estadual deixou de ser
+  fixada só na criação — dá pra reclassificar a filiação de uma Filiada a qualquer momento.
+- **Técnicos deixou de ser um espelho de `usuarios`** e virou o banco de talentos de verdade
+  que devia ser desde o início: tabela `tecnicos` (migration 08) com nome, telefone, email,
+  `area_atuacao` (ATER/Administrativo/Comunicação/Coordenação/Jurídico/Contábil/TI),
+  competências (texto livre) e vínculo Nacional/Estadual — **independente de ter login** no
+  sistema (isso continua só em Administração → Usuários). Ganhou filtro por Projeto (default
+  Todos) antes da busca.
+- **Equipe** (novo): aba dentro do detalhe de Projeto, aloca um `tecnico` no projeto com
+  cargo/função livre (`equipe_projeto`, migration 10) — é o que alimenta o filtro por Projeto
+  em Técnicos. Três eixos agora coexistem e são independentes: vínculo institucional do
+  técnico (Nacional/Estadual), vínculo do Filiado com o projeto (`empreendimento_projeto`), e
+  alocação do técnico no projeto (`equipe_projeto`).
+- **Edição liberada em Diretoria (Nacional e Estadual) e Usuários** — antes só existia
+  "+Adicionar"/"+Cadastrar", sem editar nem excluir. Diretoria: clique na linha abre o drawer
+  pra editar, com botão Excluir. Usuários: clique na linha edita nome/perfil/estadual/
+  instituição + toggle "Ativo" que agora **bloqueia login de verdade** (checado no
+  `AppShell`, redireciona pro login com aviso) — antes o campo existia no banco mas nada
+  checava. Documentos/anexos ganharam botão Excluir (remove do Storage e da tabela).
+- **Dois bugs de RLS encontrados e corrigidos no caminho** (migration 09): `unisol_estaduais`
+  nunca teve policy de `UPDATE` — a edição de perfil de uma Estadual rodava mas nunca gravava
+  nada, falhava em silêncio. E `empreendimentos` só permitia `UPDATE` pra admin, então quando
+  um técnico/aplicador editava a Seção 2 em campo (fluxo real de uso, não é admin), a
+  gravação também falhava silenciosamente — ampliado pra `authenticated`, mesma régua já usada
+  pro INSERT (migration 02).
+- Todas as migrations (05 a 10) rodadas e confirmadas pelo Luciano; build local limpo em cada
+  rodada; deploy em produção confirmado via curl a cada etapa.
+
+**Achado de processo**: pedir pro Luciano abrir o `.sql` revelado no Finder às vezes resulta
+nele escrevendo "Feito"/colando o erro *dentro do arquivo* (em vez de só rodar no Supabase e
+responder no chat) — isso sobrescreve o conteúdo da migration. Sempre conferir o conteúdo do
+arquivo antes de commitar quando isso acontecer, e restaurar a partir do que foi escrito
+originalmente (está registrado neste mesmo STATUS.md e no histórico da conversa).
+
 ## Próxima sessão — retomar por aqui
 1. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
    empreendimentos do CooperaMais em `empreendimentos` + `empreendimento_projeto` (fonte:
@@ -217,3 +268,7 @@ Rodada de ajustes sobre a camada institucional (que já estava completa e em pro
 3. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).
 4. `numero_termo_fomento`/`numero_transferegov` do CooperaMais ainda não preenchidos — Luciano
    vai passar os números certos.
+5. CNPJ das estaduais sem dado ainda (PI/CE/PB/MT/AC/SE/MG/SC).
+6. Equipe é só alocação (cargo texto livre) — sem período obrigatório de vigência na UI
+   (`data_saida`/`ativo` existem no schema mas não têm campo no drawer ainda); avaliar se
+   precisa antes de escalar o uso.
