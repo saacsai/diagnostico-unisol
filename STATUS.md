@@ -172,15 +172,48 @@ Colar direto do chat corrompeu caracteres duas vezes (erro de sintaxe em linha q
 com o arquivo real). O que resolveu: abrir o `.sql` no Finder/editor de texto e copiar de lá,
 não do chat. Vale como procedimento padrão pras próximas migrations.
 
+## 2026-09-03 — Sidebar reorganizada + Filiadas + Técnicos + categoria de Projeto
+
+Rodada de ajustes sobre a camada institucional (que já estava completa e em produção):
+
+- **Sidebar reorganizada** em 3 grupos: **CADASTROS** (Nacional — ex-"Instituição", Estaduais,
+  Filiadas, Técnicos), **PROJETOS** (Emendas/MROSC/Outros — 3 links pra mesma lista, filtrada
+  por `?categoria=`), **ADMINISTRAÇÃO** (Usuários). `AppSidebar.tsx` ganhou `useSearchParams`
+  pra saber qual link de Projetos está ativo — exigiu envolver `<AppSidebar>` em `<Suspense>`
+  dentro de `AppShell.tsx` (senão o build reclama de `useSearchParams` fora de boundary).
+- **`projetos.categoria_instrumento`** (`emenda`|`mrosc`|`outro`, migration 05) — campo
+  controlado só pra filtro da sidebar, separado de `tipo_instrumento` (texto livre já
+  existente, ex: "Termo de Fomento"). CooperaMais = `mrosc`.
+- **Página Filiadas** (`/filiadas`, `components/filiadas/FiliadasLista.tsx`): lista de todos os
+  ~152+ empreendimentos com Nome/CNPJ/Filiação (badges Nacional e/ou nome da Estadual, os dois
+  eixos são independentes)/Status do diagnóstico mais recente (%)/Projetos em execução
+  vinculados. Clique abre o detalhe.
+- **Detalhe da Filiada** (`/filiadas/[id]`, `components/filiadas/FiliadaDetalhe.tsx`): resumo
+  cadastral + card de diagnóstico. Sem diagnóstico → botão "Iniciar Diagnóstico". Com
+  diagnóstico 100% → "Editar" (entra na versão atual) e "Atualizar diagnóstico" (Drawer: rótulo
+  de versão tipo `T1-2027`, relato curto, relatório anexo opcional — cria uma **nova linha** em
+  `diagnosticos` com `versao+1`, copiando `respostas`/`analise_tecnica` da versão anterior como
+  ponto de partida). Histórico de atualizações lista todas as versões (rótulo, data, %, relato,
+  link pro relatório anexado se houver) — "a evolução do Filiado" que o Luciano descreveu como
+  o principal ativo de dados da UNISOL.
+  - `diagnosticos.relato_versao` (migration 06) — texto curto da evolução, direto na tabela
+    (o arquivo do relatório continua indo por `documentos_institucionais`, tipo
+    `relatorio_evolucao`, que também virou opção em `TIPOS_DOCUMENTO`).
+- **Página Técnicos** (`/tecnicos`, `components/tecnicos/TecnicosLista.tsx`): diretório
+  somente-leitura de `usuarios` com perfil `aplicador`/`tecnico` — nome, contato, perfil,
+  vínculo institucional (Nacional direto ou qual Estadual), instituição. Não cria nem edita —
+  isso continua em Administração → Usuários, sem mudança nenhuma ali.
+- Build local limpo, deploy em produção (`sistema.unisolbrasil.org.br`), rotas novas + filtro
+  de Projetos confirmados via curl (200 em todas).
+
 ## Próxima sessão — retomar por aqui
-1. Tela `/admin/usuarios` (cadastro dos ~35-40 usuários — 18 técnicos, 2 coordenadores
-   gerais, 5 coordenadores regionais, 5 administrativos regionais, diretoria — via convite
-   por email; configurar SMTP próprio no Supabase Auth pra não travar no rate limit padrão).
-2. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
+1. Popular `unisol_estaduais` (lista real ainda não recebida do Luciano) e importar os 152
    empreendimentos do CooperaMais em `empreendimentos` + `empreendimento_projeto` (fonte:
    planilha/lista real da UNISOL, ainda não recebida).
-3. Fase 2 do plano original (`.claude/plans/twinkling-imagining-fairy.md`): Dexie +
-   `dexie-react-hooks`, `sync.ts`, wizard shell com as 18+2 seções, Seções 1 e 2 completas,
-   prova end-to-end do loop offline — Seção 2 agora escreve em `empreendimentos`, não mais
-   como resposta solta dentro do diagnóstico.
-4. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).
+2. Fase 2 do plano original (`.claude/plans/twinkling-imagining-fairy.md`): offline de
+   verdade (Dexie) — escopo confirmado como exclusivo do wizard de diagnóstico, todo o resto
+   (Filiadas, Estaduais, Projetos, Usuários, Técnicos) fica online-only e bloqueado no mobile
+   (já está, via `SoDesktop`).
+3. Portal do dirigente por token (Seção 2/3/4/6/7/10/12/15 pré-preenchidas antes da visita).
+4. `numero_termo_fomento`/`numero_transferegov` do CooperaMais ainda não preenchidos — Luciano
+   vai passar os números certos.
