@@ -57,7 +57,7 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'secao16': return <Secao16Parcerias dados={r as never} onChange={onR} />
     case 'secao17': return <Secao17Analise dados={a as never} onChange={onA} />
     case 'secao18': return <Secao18PlanoAcao dados={a as never} onChange={onA} />
-    case 'anexoA':  return <AnexoAEvidencias dados={a as never} onChange={onA} />
+    case 'anexoA':  return <AnexoAEvidencias diagnosticoId={ctx.diagnosticoId} />
     case 'anexoB':  return <AnexoBSintese dados={a as never} onChange={onA} />
     default: return null
   }

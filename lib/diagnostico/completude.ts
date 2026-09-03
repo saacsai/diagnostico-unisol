@@ -3,7 +3,10 @@ import type { Diagnostico, Empreendimento } from '@/lib/supabase'
 
 export function calcularCompletude(
   diagnostico: Pick<Diagnostico, 'respostas' | 'analise_tecnica'>,
-  empreendimento: Empreendimento | null | undefined
+  empreendimento: Empreendimento | null | undefined,
+  /** Anexo A agora é upload real (documentos_institucionais), não vem no JSONB — quem chama
+   * informa se já existe pelo menos um documento anexado (query separada, sem N+1). */
+  temDocumentoAnexoA = false
 ) {
   const respostas = (diagnostico.respostas as Record<string, unknown>) || {}
   const analiseTecnica = (diagnostico.analise_tecnica as Record<string, unknown>) || {}
@@ -12,7 +15,8 @@ export function calcularCompletude(
   const completas: Record<string, boolean> = {}
   for (const s of SECOES) {
     let ok = false
-    if (s.destino === 'respostas') ok = !!respostas[s.id]
+    if (s.id === 'anexoA') ok = temDocumentoAnexoA
+    else if (s.destino === 'respostas') ok = !!respostas[s.id]
     else if (s.destino === 'analise_tecnica') ok = !!analiseTecnica[s.id]
     else if (s.destino === 'empreendimento') ok = !!empreendimento?.nome_fantasia
     completas[s.id] = ok

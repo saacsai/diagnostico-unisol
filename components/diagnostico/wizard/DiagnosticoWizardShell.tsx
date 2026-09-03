@@ -17,6 +17,7 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   const [secaoId, setSecaoId] = useState('secao01')
   const [respostas, setRespostas] = useState<Record<string, unknown>>({})
   const [analiseTecnica, setAnaliseTecnica] = useState<Record<string, unknown>>({})
+  const [temAnexoA, setTemAnexoA] = useState(false)
 
   const { status, salvarRespostas, salvarAnaliseTecnica } = useAutosaveDiagnostico(diagnosticoId)
 
@@ -35,6 +36,9 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
         setAnaliseTecnica((diag.analise_tecnica as Record<string, unknown>) || {})
         const { data: emp } = await sb.from('empreendimentos').select('*').eq('id', diag.empreendimento_id).single()
         setEmpreendimento(emp as Empreendimento)
+        const { count } = await sb.from('documentos_institucionais').select('id', { count: 'exact', head: true })
+          .eq('entidade_tipo', 'diagnostico').eq('entidade_id', diagnosticoId)
+        setTemAnexoA(!!count && count > 0)
       }
       setUsuario(userRow as Usuario)
       setCarregando(false)
@@ -65,7 +69,7 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   if (carregando) return <div className="p-8 text-sm text-gray-400">Carregando…</div>
   if (!diagnostico) return <div className="p-8 text-sm text-red-500">Diagnóstico não encontrado.</div>
 
-  const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento)
+  const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento, temAnexoA)
 
   const cfg = secaoAtual(secaoId)
   const perfilUsuario = usuario?.perfil ?? 'aplicador'

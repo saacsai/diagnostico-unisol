@@ -13,14 +13,26 @@ export function ListaDiagnosticos() {
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [drawer, setDrawer] = useState(false)
+  const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
 
   async function carregar() {
     setCarregando(true)
-    const { data } = await getSupabase()
+    const sb = getSupabase()
+    const { data } = await sb
       .from('diagnosticos')
       .select('*, empreendimentos(*)')
       .order('created_at', { ascending: false })
-    setLista((data as DiagnosticoComEmpreendimento[]) || [])
+    const diags = (data as DiagnosticoComEmpreendimento[]) || []
+    setLista(diags)
+
+    if (diags.length > 0) {
+      const { data: docs } = await sb
+        .from('documentos_institucionais')
+        .select('entidade_id')
+        .eq('entidade_tipo', 'diagnostico')
+        .in('entidade_id', diags.map(d => d.id))
+      setIdsComAnexoA(new Set((docs || []).map((d: { entidade_id: string }) => d.entidade_id)))
+    }
     setCarregando(false)
   }
 
@@ -62,7 +74,7 @@ export function ListaDiagnosticos() {
             </thead>
             <tbody>
               {filtrados.map(d => {
-                const { feitas, total, pct } = calcularCompletude(d, d.empreendimentos)
+                const { feitas, total, pct } = calcularCompletude(d, d.empreendimentos, idsComAnexoA.has(d.id))
                 return (
                   <tr key={d.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer"
                     onClick={() => window.location.href = `/diagnosticos?id=${d.id}`}>
