@@ -62,14 +62,15 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
+// Só aparece no desktop (lg:translate-x-0 / -translate-x-full por padrão) — no mobile quase
+// tudo aqui dentro é bloqueado mesmo (SoDesktop), a navegação de verdade no aparelho é a
+// MobileTabBar (components/layout/MobileTabBar.tsx).
 export function AppSidebar({
-  nome, email, perfil, mobileAberto = false, onMobileFechar,
+  nome, email, perfil,
 }: {
   nome: string
   email: string
   perfil: Perfil
-  mobileAberto?: boolean
-  onMobileFechar?: () => void
 }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -89,13 +90,9 @@ export function AppSidebar({
 
   return (
     <>
-      {mobileAberto && (
-        <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={onMobileFechar} />
-      )}
       <aside
         style={{ width: SIDEBAR_W, minWidth: SIDEBAR_W, background: '#F5F5F5', borderRight: '1px solid #E5E5E5' }}
-        className={`fixed left-0 top-0 h-screen flex flex-col z-30 transition-transform duration-200 ease-in-out
-          ${mobileAberto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+        className="fixed left-0 top-0 h-screen flex-col z-30 hidden lg:flex"
       >
         <div className="pt-6 pb-5 flex justify-center" style={{ paddingLeft: 30, paddingRight: 30 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -158,7 +158,10 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
         <SidebarSecoes ativa={secaoId} onSelecionar={setSecaoId} completas={completas} perfilUsuario={perfilUsuario} />
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        {/* pb-[88px] reserva espaço pra MobileTabBar (56px + respiro) não cobrir o fim do
+            conteúdo ao rolar — a barra é fixed, então quem precisa da folga é a área de
+            rolagem, não a altura do container. */}
+        <main className="flex-1 overflow-y-auto p-4 pb-[88px] md:p-6 lg:pb-6">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-base font-bold text-gray-900 mb-4">
               Seção {cfg.numero} — {cfg.titulo}

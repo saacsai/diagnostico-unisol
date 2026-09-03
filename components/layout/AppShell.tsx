@@ -6,6 +6,7 @@ import { getDB } from '@/lib/offline/db'
 import { iniciarSyncEngine } from '@/lib/offline/sync'
 import { AppSidebar } from './AppSidebar'
 import { SyncStatusBadge } from './SyncStatusBadge'
+import { MobileTabBar } from './MobileTabBar'
 
 function usuarioDoCache(cache: { usuarioId: string; nome: string; perfil: Usuario['perfil'] }): Usuario {
   return {
@@ -18,7 +19,6 @@ const SIDEBAR_W = '224px'
 
 export function AppShell({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) {
   const [usuario, setUsuario] = useState<Usuario | null | undefined>(undefined)
-  const [menuMobile, setMenuMobile] = useState(false)
 
   useEffect(() => {
     iniciarSyncEngine()
@@ -69,32 +69,33 @@ export function AppShell({ children, fullBleed = false }: { children: React.Reac
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-20 h-14 flex items-center px-4 gap-3" style={{ background: '#F5F5F5', borderBottom: '1px solid #E5E5E5' }}>
-        <button onClick={() => setMenuMobile(true)} className="flex flex-col gap-1.5 p-1" aria-label="Abrir menu">
-          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
-          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
-          <span className="block w-5 h-0.5 rounded" style={{ background: '#4b5563' }} />
-        </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 28 }} className="w-auto object-contain" />
         <div className="ml-auto"><SyncStatusBadge /></div>
       </div>
 
+      {/* Sidebar completa (Cadastros/Projetos/Administração) só existe no desktop — no mobile
+          quase tudo é bloqueado mesmo (SoDesktop), então em vez de expor um menu cheio de
+          links que não funcionam, o mobile usa a barra de baixo (MobileTabBar) só com o que
+          de fato funciona no aparelho. */}
       <Suspense fallback={null}>
         <AppSidebar
           nome={usuario?.nome ?? ''}
           email={usuario?.email ?? ''}
           perfil={usuario?.perfil ?? 'aplicador'}
-          mobileAberto={menuMobile}
-          onMobileFechar={() => setMenuMobile(false)}
         />
       </Suspense>
 
+      {/* pb-[72px] = ALTURA_TAB_BAR (56px, MobileTabBar.tsx) + respiro — Tailwind precisa da
+          classe literal aqui, não dá pra interpolar a constante numa arbitrary value. */}
       <main
-        className={fullBleed ? 'pt-14 lg:pt-0 lg:ml-[224px]' : 'p-4 lg:p-8 pt-[72px] lg:pt-8 lg:ml-[224px]'}
+        className={fullBleed ? 'pt-14 lg:pt-0 lg:ml-[224px]' : 'p-4 lg:p-8 pt-[72px] lg:pt-8 lg:ml-[224px] pb-[72px] lg:pb-8'}
         style={{ minHeight: '100vh' }}
       >
         {children}
       </main>
+
+      <MobileTabBar />
     </div>
   )
 }
