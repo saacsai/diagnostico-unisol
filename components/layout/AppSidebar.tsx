@@ -65,9 +65,9 @@ export function AppSidebar({
         className={`fixed left-0 top-0 h-screen flex flex-col z-30 transition-transform duration-200 ease-in-out
           ${mobileAberto ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
-        <div className="px-4 pt-5 pb-4">
+        <div className="pt-6 pb-5 flex justify-center" style={{ paddingLeft: 30, paddingRight: 30 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 34 }} className="w-auto object-contain" />
+          <img src="/logo_unisol.png" alt="UNISOL Brasil" className="w-full h-auto object-contain" />
         </div>
 
         <div style={{ borderTop: '1px solid #E5E5E5' }} />
