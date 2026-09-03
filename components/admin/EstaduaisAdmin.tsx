@@ -65,17 +65,25 @@ export function EstaduaisAdmin() {
               <tr className="border-b border-gray-100">
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Nome</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">UF</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Status</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.map(e => (
-                <tr key={e.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                <tr key={e.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer"
+                  onClick={() => window.location.href = `/admin/estaduais/${e.id}`}>
                   <td className="px-4 py-3 font-medium text-gray-900">{e.nome}</td>
                   <td className="px-4 py-3 text-gray-500">{e.uf}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                      style={e.status === 'formalizada' ? { background: '#dcfce7', color: '#15803d' } : { background: '#fef3c7', color: '#b45309' }}>
+                      {e.status === 'formalizada' ? 'Formalizada' : 'Em constituição'}
+                    </span>
+                  </td>
                 </tr>
               ))}
               {filtrados.length === 0 && (
-                <tr><td colSpan={2} className="px-4 py-8 text-center text-sm text-gray-400">Nenhuma estadual cadastrada ainda.</td></tr>
+                <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-gray-400">Nenhuma estadual cadastrada ainda.</td></tr>
               )}
             </tbody>
           </table>
