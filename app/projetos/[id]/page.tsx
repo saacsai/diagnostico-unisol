@@ -10,6 +10,7 @@ import { CampoSelect } from '@/components/diagnostico/campos/CampoSelect'
 import { CampoData } from '@/components/diagnostico/campos/CampoData'
 import { DocumentosAdmin } from '@/components/institucional/DocumentosAdmin'
 import { FiliadosVinculados } from '@/components/projetos/FiliadosVinculados'
+import { EquipeProjeto } from '@/components/projetos/EquipeProjeto'
 
 export default function ProjetoDetalhePage({ params }: { params: { id: string } }) {
   return (
@@ -85,6 +86,7 @@ function ProjetoConteudo({ id }: { id: string }) {
       </div>
 
       <FiliadosVinculados projetoId={dados.id} />
+      <EquipeProjeto projetoId={dados.id} />
       <DocumentosAdmin entidadeTipo="projeto" entidadeId={dados.id} />
     </div>
   )

@@ -13,6 +13,7 @@ export function FiliadasLista() {
   const [projetosPorEmp, setProjetosPorEmp] = useState<Record<string, Projeto[]>>({})
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
+  const [filiacao, setFiliacao] = useState('todos')
   const [drawer, setDrawer] = useState(false)
 
   useEffect(() => {
@@ -68,7 +69,17 @@ export function FiliadasLista() {
     carregar()
   }, [])
 
-  const filtrados = lista.filter(e =>
+  const estaduaisAtivas = Object.values(estaduais)
+    .filter(e => e.status === 'formalizada')
+    .sort((a, b) => a.nome.localeCompare(b.nome))
+
+  const porFiliacao = lista.filter(e => {
+    if (filiacao === 'todos') return true
+    if (filiacao === 'nacional') return e.vinculacao_unisol === 'filiado'
+    return e.unisol_estadual_id === filiacao
+  })
+
+  const filtrados = porFiliacao.filter(e =>
     !busca || `${e.nome_fantasia} ${e.razao_social} ${e.cnpj}`.toLowerCase().includes(busca.toLowerCase())
   )
 
@@ -81,10 +92,18 @@ export function FiliadasLista() {
         </button>
       </div>
 
-      <input
-        value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome, razão social ou CNPJ…"
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] mb-3"
-      />
+      <div className="flex gap-2 mb-3">
+        <select value={filiacao} onChange={e => setFiliacao(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] bg-white">
+          <option value="todos">Todos</option>
+          <option value="nacional">Nacional</option>
+          {estaduaisAtivas.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
+        </select>
+        <input
+          value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome, razão social ou CNPJ…"
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+        />
+      </div>
 
       {carregando ? (
         <p className="text-sm text-gray-400">Carregando…</p>

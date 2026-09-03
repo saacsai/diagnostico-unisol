@@ -194,6 +194,20 @@ export interface Tecnico {
   updated_at: string
 }
 
+// Equipe — aloca um Técnico (banco de talentos) num Projeto, com cargo/função. Eixo
+// independente de empreendimento_projeto (Filiados no projeto) e de tecnicos.unisol_estadual_id
+// (vínculo institucional do técnico).
+export interface EquipeProjeto {
+  id: string
+  projeto_id: string
+  tecnico_id: string
+  cargo: string | null
+  data_entrada: string
+  data_saida: string | null
+  ativo: boolean
+  created_at: string
+}
+
 export interface EmpreendimentoProjeto {
   id: string
   empreendimento_id: string

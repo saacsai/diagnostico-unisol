@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Tecnico, UnisolEstadual, AreaAtuacao } from '@/lib/supabase'
+import { getSupabase, Tecnico, UnisolEstadual, AreaAtuacao, Projeto } from '@/lib/supabase'
 import { Drawer } from '@/components/layout/Drawer'
 import { CampoTexto } from '@/components/diagnostico/campos/CampoTexto'
 
@@ -20,8 +20,11 @@ const VAZIO = { nome: '', telefone: '', email: '', area_atuacao: '', competencia
 export function TecnicosLista() {
   const [lista, setLista] = useState<Tecnico[]>([])
   const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
+  const [projetos, setProjetos] = useState<Projeto[]>([])
+  const [tecnicosPorProjeto, setTecnicosPorProjeto] = useState<Record<string, Set<string>>>({})
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
+  const [projetoFiltro, setProjetoFiltro] = useState('todos')
   const [drawer, setDrawer] = useState(false)
   const [form, setForm] = useState(VAZIO)
   const [erro, setErro] = useState('')
@@ -30,12 +33,21 @@ export function TecnicosLista() {
   async function carregar() {
     setCarregando(true)
     const sb = getSupabase()
-    const [{ data: t }, { data: e }] = await Promise.all([
+    const [{ data: t }, { data: e }, { data: p }, { data: eq }] = await Promise.all([
       sb.from('tecnicos').select('*').order('nome'),
       sb.from('unisol_estaduais').select('*').order('nome'),
+      sb.from('projetos').select('*').eq('ativo', true).order('nome'),
+      sb.from('equipe_projeto').select('projeto_id, tecnico_id'),
     ])
     setLista((t as Tecnico[]) || [])
     setEstaduais((e as UnisolEstadual[]) || [])
+    setProjetos((p as Projeto[]) || [])
+    const porProjeto: Record<string, Set<string>> = {}
+    for (const a of (eq as { projeto_id: string; tecnico_id: string }[]) || []) {
+      if (!porProjeto[a.projeto_id]) porProjeto[a.projeto_id] = new Set()
+      porProjeto[a.projeto_id].add(a.tecnico_id)
+    }
+    setTecnicosPorProjeto(porProjeto)
     setCarregando(false)
   }
   useEffect(() => { carregar() }, [])
@@ -62,7 +74,11 @@ export function TecnicosLista() {
   }
 
   const nomeEstadual = (id: string | null) => id ? (estaduais.find(e => e.id === id)?.nome || '—') : 'Direto na Nacional'
-  const filtrados = lista.filter(t =>
+
+  const porProjeto = lista.filter(t =>
+    projetoFiltro === 'todos' || tecnicosPorProjeto[projetoFiltro]?.has(t.id)
+  )
+  const filtrados = porProjeto.filter(t =>
     !busca || `${t.nome} ${t.email ?? ''} ${t.competencias ?? ''}`.toLowerCase().includes(busca.toLowerCase())
   )
 
@@ -71,17 +87,24 @@ export function TecnicosLista() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>Técnicos</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Banco de talentos da UNISOL — área de atuação e competências, pra alocar em projetos depois.</p>
+          <p className="text-xs text-gray-400 mt-0.5">Banco de talentos da UNISOL — área de atuação, competências e alocação em projetos (aba Equipe, no detalhe do projeto).</p>
         </div>
         <button onClick={abrirNovo} className="text-sm font-medium text-white rounded-lg px-4 py-2" style={{ background: 'var(--primary)' }}>
           + Cadastrar
         </button>
       </div>
 
-      <input
-        value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome, email ou competência…"
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] mb-3"
-      />
+      <div className="flex gap-2 mb-3">
+        <select value={projetoFiltro} onChange={e => setProjetoFiltro(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] bg-white">
+          <option value="todos">Todos os projetos</option>
+          {projetos.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+        </select>
+        <input
+          value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome, email ou competência…"
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+        />
+      </div>
 
       {carregando ? (
         <p className="text-sm text-gray-400">Carregando…</p>
