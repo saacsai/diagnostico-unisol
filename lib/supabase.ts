@@ -43,6 +43,7 @@ export type StatusProjeto     = 'em_concorrencia' | 'em_fase_aprovacao' | 'em_ex
 export type CategoriaInstrumento = 'emenda' | 'mrosc' | 'outro'
 export type EntidadeTipo      = 'unisol_brasil' | 'unisol_estadual' | 'projeto' | 'diagnostico' | 'empreendimento'
 export type EntidadeDiretoria = 'unisol_brasil' | 'unisol_estadual'
+export type AreaAtuacao       = 'ater' | 'administrativo' | 'comunicacao' | 'coordenacao' | 'juridico' | 'contabil' | 'ti'
 
 // ─── Entidades ────────────────────────────────────────────────────────────────
 
@@ -176,6 +177,21 @@ export interface Projeto {
   data_fim_execucao: string | null
   ativo: boolean
   created_at: string
+}
+
+// Banco de talentos técnicos — separado de `usuarios` (login). Cadastro de quem está
+// disponível pra atuar, independente de ter acesso ao sistema.
+export interface Tecnico {
+  id: string
+  nome: string
+  telefone: string | null
+  email: string | null
+  area_atuacao: AreaAtuacao | null
+  competencias: string | null
+  unisol_estadual_id: string | null
+  ativo: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface EmpreendimentoProjeto {
