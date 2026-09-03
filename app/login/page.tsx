@@ -82,7 +82,7 @@ function LoginInner() {
         {/* Cabeçalho */}
         <div className="px-6 pt-8 pb-5 flex flex-col items-center text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 58 }} className="w-auto object-contain" />
+          <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 70 }} className="w-auto object-contain" />
         </div>
 
         <div style={{ borderTop: `1px solid ${BORDER}` }} />
