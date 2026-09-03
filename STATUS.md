@@ -1,5 +1,20 @@
 # Status — Sistema UNISOL Brasil
 
+## Auth: SMTP próprio + fluxo de senha corrigido (2026-09-03)
+Dois problemas reais encontrados e corrigidos no fluxo "Esqueci minha senha":
+1. **Página `/redefinir-senha` não existia** — o login já chamava `resetPasswordForEmail` com
+   `redirectTo` pra lá, mas dava 404. Criada (mesmo padrão do cooperliga-dashboard: escuta
+   `PASSWORD_RECOVERY`, chama `updateUser({password})`).
+2. **Site URL do Supabase Auth apontava pra `http://localhost:3000`** (config padrão nunca
+   trocada) — o link do email sempre mandava pro localhost, ignorando o `redirectTo` do código.
+   Corrigido em Authentication → URL Configuration (Site URL = `sistema.unisolbrasil.org.br`,
+   Redirect URLs com wildcard cobrindo os dois domínios).
+3. **Rate limit de email do Supabase** (`over_email_send_rate_limit`, plano padrão é bem
+   restritivo) — resolvido configurando **SMTP próprio via Resend**, domínio
+   `unisolbrasil.org.br` verificado (SPF/DKIM/DMARC via Hostgator), remetente
+   `sistema@unisolbrasil.org.br`. Testado ponta a ponta, email chegou. Resolve não só reset de
+   senha como o futuro convite de usuário em massa (`/admin/usuarios`).
+
 ## Domínio (2026-09-03)
 `sistema.unisolbrasil.org.br` é o domínio principal agora (CNAME
 `754232ffc198aa35.vercel-dns-017.com`, mesmo alvo de antes). `diagnostico.unisolbrasil.org.br`
