@@ -19,6 +19,7 @@ export default function LoginPage() {
 function LoginInner() {
   const params = useSearchParams()
   const next = params.get('next') ?? '/diagnosticos'
+  const inativo = params.get('inativo') === '1'
 
   const [email, setEmail]       = useState('')
   const [senha, setSenha]       = useState('')
@@ -97,6 +98,12 @@ function LoginInner() {
               {modo === 'login' ? 'Entre com seu email e senha.' : 'Informe seu email para receber o link.'}
             </p>
           </div>
+
+          {inativo && modo === 'login' && (
+            <p className="text-xs rounded-lg p-2 mb-3 bg-amber-50 text-amber-700 border border-amber-200">
+              Este usuário está inativo. Fale com um administrador do sistema.
+            </p>
+          )}
 
           {modo === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-3">

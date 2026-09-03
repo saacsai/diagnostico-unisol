@@ -19,6 +19,11 @@ export function AppShell({ children, fullBleed = false }: { children: React.Reac
         return
       }
       const { data } = await sb.from('usuarios').select('*').eq('id', sessao.session.user.id).single()
+      if (data && !data.ativo) {
+        await sb.auth.signOut()
+        window.location.href = '/login?inativo=1'
+        return
+      }
       setUsuario((data as Usuario) || null)
     }
     carregar()

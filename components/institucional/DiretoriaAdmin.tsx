@@ -10,9 +10,11 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
   const [lista, setLista] = useState<DiretoriaMembro[]>([])
   const [carregando, setCarregando] = useState(true)
   const [drawer, setDrawer] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [form, setForm] = useState(VAZIO)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [excluindo, setExcluindo] = useState(false)
 
   async function carregar() {
     setCarregando(true)
@@ -28,7 +30,16 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
   useEffect(() => { carregar() }, [entidadeTipo, entidadeId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function abrirNovo() {
-    setForm(VAZIO); setErro(''); setDrawer(true)
+    setEditandoId(null); setForm(VAZIO); setErro(''); setDrawer(true)
+  }
+
+  function abrirEdicao(m: DiretoriaMembro) {
+    setEditandoId(m.id)
+    setForm({
+      nome_completo: m.nome_completo, cargo: m.cargo ?? '', endereco: m.endereco ?? '',
+      email: m.email ?? '', telefone: m.telefone ?? '', cpf: m.cpf ?? '', rg: m.rg ?? '',
+    })
+    setErro(''); setDrawer(true)
   }
 
   async function salvar(e: React.FormEvent) {
@@ -36,11 +47,22 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
     setErro('')
     if (!form.nome_completo.trim()) { setErro('Informe o nome completo.'); return }
     setSalvando(true)
-    const { error } = await getSupabase().from('diretoria_membros').insert({
-      entidade_tipo: entidadeTipo, entidade_id: entidadeId, ...form,
-    })
+    const sb = getSupabase()
+    const { error } = editandoId
+      ? await sb.from('diretoria_membros').update(form).eq('id', editandoId)
+      : await sb.from('diretoria_membros').insert({ entidade_tipo: entidadeTipo, entidade_id: entidadeId, ...form })
     if (error) { setErro(error.message); setSalvando(false); return }
     setDrawer(false); setSalvando(false); carregar()
+  }
+
+  async function excluir() {
+    if (!editandoId) return
+    if (!confirm(`Remover ${form.nome_completo} da diretoria?`)) return
+    setExcluindo(true)
+    const { error } = await getSupabase().from('diretoria_membros').delete().eq('id', editandoId)
+    setExcluindo(false)
+    if (error) { setErro(error.message); return }
+    setDrawer(false); carregar()
   }
 
   return (
@@ -66,7 +88,8 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
             </thead>
             <tbody>
               {lista.map(m => (
-                <tr key={m.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                <tr key={m.id} onClick={() => abrirEdicao(m)}
+                  className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer">
                   <td className="px-3 py-2 font-medium text-gray-900">{m.nome_completo}</td>
                   <td className="px-3 py-2 text-gray-500">{m.cargo || '—'}</td>
                   <td className="px-3 py-2 text-gray-500">{m.email || m.telefone || '—'}</td>
@@ -80,7 +103,7 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
         </div>
       )}
 
-      <Drawer open={drawer} onClose={() => setDrawer(false)} title="Adicionar membro da diretoria">
+      <Drawer open={drawer} onClose={() => setDrawer(false)} title={editandoId ? 'Editar membro da diretoria' : 'Adicionar membro da diretoria'}>
         <form onSubmit={salvar} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Nome completo *</label>
@@ -121,6 +144,12 @@ export function DiretoriaAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: Ent
           </div>
           {erro && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{erro}</p>}
           <div className="flex gap-2 pt-2">
+            {editandoId && (
+              <button type="button" onClick={excluir} disabled={excluindo}
+                className="text-sm font-medium rounded-lg px-3 py-2 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50">
+                {excluindo ? 'Removendo…' : 'Excluir'}
+              </button>
+            )}
             <button type="button" onClick={() => setDrawer(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
             <button type="submit" disabled={salvando}
               className="flex-1 rounded-lg py-2 text-sm font-medium text-white disabled:opacity-50" style={{ background: 'var(--primary)' }}>

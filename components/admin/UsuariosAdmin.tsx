@@ -11,7 +11,7 @@ function gerarSenhaTemp() {
   return s + '!1'
 }
 
-const VAZIO = { nome: '', email: '', perfil: 'aplicador' as Perfil, instituicao: '', unisol_estadual_id: '' }
+const VAZIO = { nome: '', email: '', perfil: 'aplicador' as Perfil, instituicao: '', unisol_estadual_id: '', ativo: true }
 
 const LABEL_PERFIL: Record<Perfil, string> = {
   aplicador: 'Aplicador (técnico de campo)',
@@ -25,6 +25,7 @@ export function UsuariosAdmin() {
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [drawer, setDrawer] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
   const [form, setForm] = useState(VAZIO)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -44,7 +45,16 @@ export function UsuariosAdmin() {
   useEffect(() => { carregar() }, [])
 
   function abrirNovo() {
-    setForm(VAZIO); setErro(''); setCriado(null); setDrawer(true)
+    setEditandoId(null); setForm(VAZIO); setErro(''); setCriado(null); setDrawer(true)
+  }
+
+  function abrirEdicao(u: Usuario) {
+    setEditandoId(u.id)
+    setForm({
+      nome: u.nome, email: u.email, perfil: u.perfil,
+      instituicao: u.instituicao ?? '', unisol_estadual_id: u.unisol_estadual_id ?? '', ativo: u.ativo,
+    })
+    setErro(''); setCriado(null); setDrawer(true)
   }
 
   async function salvar(e: React.FormEvent) {
@@ -52,8 +62,19 @@ export function UsuariosAdmin() {
     setErro(''); setCriado(null)
     if (!form.nome.trim() || !form.email.trim()) { setErro('Nome e email são obrigatórios.'); return }
     setSalvando(true)
-    const senha = gerarSenhaTemp()
     const sb = getSupabase()
+
+    if (editandoId) {
+      const { error } = await sb.from('usuarios').update({
+        nome: form.nome, perfil: form.perfil, instituicao: form.instituicao || null,
+        unisol_estadual_id: form.unisol_estadual_id || null, ativo: form.ativo,
+      }).eq('id', editandoId)
+      if (error) { setErro(error.message); setSalvando(false); return }
+      setDrawer(false); setSalvando(false); carregar()
+      return
+    }
+
+    const senha = gerarSenhaTemp()
     const { data: sessao } = await sb.auth.getSession()
     const token = sessao.session?.access_token
 
@@ -105,8 +126,9 @@ export function UsuariosAdmin() {
             </thead>
             <tbody>
               {filtrados.map(u => (
-                <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{u.nome}</td>
+                <tr key={u.id} onClick={() => abrirEdicao(u)}
+                  className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer" style={{ opacity: u.ativo ? 1 : 0.5 }}>
+                  <td className="px-4 py-3 font-medium text-gray-900">{u.nome}{!u.ativo && <span className="ml-2 text-xs font-normal text-gray-400">(inativo)</span>}</td>
                   <td className="px-4 py-3 text-gray-500">{u.email}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{u.perfil}</span>
@@ -122,7 +144,7 @@ export function UsuariosAdmin() {
         </div>
       )}
 
-      <Drawer open={drawer} onClose={() => setDrawer(false)} title="Cadastrar usuário">
+      <Drawer open={drawer} onClose={() => setDrawer(false)} title={editandoId ? 'Editar usuário' : 'Cadastrar usuário'}>
         {criado ? (
           <div className="space-y-3">
             <div className="rounded-lg p-3 text-xs" style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)' }}>
@@ -145,7 +167,9 @@ export function UsuariosAdmin() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
               <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                disabled={!!editandoId}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] disabled:bg-gray-50 disabled:text-gray-400" />
+              {editandoId && <p className="text-[11px] text-gray-400 mt-1">Email não pode ser trocado por aqui.</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Perfil</label>
@@ -167,12 +191,18 @@ export function UsuariosAdmin() {
               <input value={form.instituicao} onChange={e => setForm(p => ({ ...p, instituicao: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
             </div>
+            {editandoId && (
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <input type="checkbox" checked={form.ativo} onChange={e => setForm(p => ({ ...p, ativo: e.target.checked }))} />
+                Ativo (desmarcar bloqueia o login sem excluir o cadastro)
+              </label>
+            )}
             {erro && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{erro}</p>}
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={() => setDrawer(false)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
               <button type="submit" disabled={salvando}
                 className="flex-1 rounded-lg py-2 text-sm font-medium text-white disabled:opacity-50" style={{ background: 'var(--primary)' }}>
-                {salvando ? 'Criando…' : 'Criar usuário'}
+                {salvando ? 'Salvando…' : editandoId ? 'Salvar' : 'Criar usuário'}
               </button>
             </div>
           </form>

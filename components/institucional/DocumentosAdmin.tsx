@@ -15,6 +15,7 @@ export function DocumentosAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: En
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [excluindoId, setExcluindoId] = useState<string | null>(null)
 
   async function carregar() {
     setCarregando(true)
@@ -66,6 +67,17 @@ export function DocumentosAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: En
     window.open(data.signedUrl, '_blank')
   }
 
+  async function excluir(doc: DocumentoInstitucional) {
+    if (!confirm(`Excluir "${doc.nome_arquivo || labelTipo(doc.tipo_documento)}"?`)) return
+    setExcluindoId(doc.id)
+    const sb = getSupabase()
+    await sb.storage.from('documentos-institucionais').remove([doc.storage_path])
+    const { error } = await sb.from('documentos_institucionais').delete().eq('id', doc.id)
+    setExcluindoId(null)
+    if (error) { alert(error.message); return }
+    carregar()
+  }
+
   const labelTipo = (t: string) => TIPOS_DOCUMENTO.find(o => o.value === t)?.label || t
 
   return (
@@ -103,8 +115,12 @@ export function DocumentosAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: En
                     <td className="px-3 py-2">
                       <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: s.bg, color: s.cor }}>{s.texto}</span>
                     </td>
-                    <td className="px-3 py-2 text-right">
-                      <button onClick={() => baixar(doc)} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>Abrir</button>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <button onClick={() => baixar(doc)} className="text-xs font-medium hover:opacity-80 mr-3" style={{ color: 'var(--primary)' }}>Abrir</button>
+                      <button onClick={() => excluir(doc)} disabled={excluindoId === doc.id}
+                        className="text-xs font-medium text-red-600 hover:opacity-80 disabled:opacity-50">
+                        {excluindoId === doc.id ? 'Excluindo…' : 'Excluir'}
+                      </button>
                     </td>
                   </tr>
                 )
