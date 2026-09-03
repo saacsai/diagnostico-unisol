@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Diagnostico, Empreendimento } from '@/lib/supabase'
+import { getSupabase, Diagnostico, Empreendimento, UnisolEstadual } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { Drawer } from '@/components/layout/Drawer'
 import { NovoDiagnostico } from './NovoDiagnostico'
@@ -10,20 +10,23 @@ type DiagnosticoComEmpreendimento = Diagnostico & { empreendimentos: Empreendime
 
 export function ListaDiagnosticos() {
   const [lista, setLista] = useState<DiagnosticoComEmpreendimento[]>([])
+  const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
+  const [filiacao, setFiliacao] = useState('todos')
   const [drawer, setDrawer] = useState(false)
   const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
 
   async function carregar() {
     setCarregando(true)
     const sb = getSupabase()
-    const { data } = await sb
-      .from('diagnosticos')
-      .select('*, empreendimentos(*)')
-      .order('created_at', { ascending: false })
+    const [{ data }, { data: ests }] = await Promise.all([
+      sb.from('diagnosticos').select('*, empreendimentos(*)').order('created_at', { ascending: false }),
+      sb.from('unisol_estaduais').select('*').eq('status', 'formalizada').order('nome'),
+    ])
     const diags = (data as DiagnosticoComEmpreendimento[]) || []
     setLista(diags)
+    setEstaduais((ests as UnisolEstadual[]) || [])
 
     if (diags.length > 0) {
       const { data: docs } = await sb
@@ -38,7 +41,13 @@ export function ListaDiagnosticos() {
 
   useEffect(() => { carregar() }, [])
 
-  const filtrados = lista.filter(d => {
+  const porFiliacao = lista.filter(d => {
+    if (filiacao === 'todos') return true
+    if (filiacao === 'nacional') return d.empreendimentos?.vinculacao_unisol === 'filiado'
+    return d.empreendimentos?.unisol_estadual_id === filiacao
+  })
+
+  const filtrados = porFiliacao.filter(d => {
     if (!busca) return true
     const alvo = `${d.empreendimentos?.nome_fantasia ?? ''} ${d.empreendimentos?.razao_social ?? ''} ${d.empreendimentos?.municipio ?? ''} ${d.empreendimentos?.uf ?? ''}`.toLowerCase()
     return alvo.includes(busca.toLowerCase())
@@ -54,10 +63,18 @@ export function ListaDiagnosticos() {
         </button>
       </div>
 
-      <input
-        value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por empreendimento, município ou UF…"
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] mb-3"
-      />
+      <div className="flex gap-2 mb-3">
+        <select value={filiacao} onChange={e => setFiliacao(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)] bg-white">
+          <option value="todos">Todos</option>
+          <option value="nacional">Nacional</option>
+          {estaduais.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
+        </select>
+        <input
+          value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por empreendimento, município ou UF…"
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+        />
+      </div>
 
       {carregando ? (
         <p className="text-sm text-gray-400">Carregando…</p>

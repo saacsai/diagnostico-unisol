@@ -41,7 +41,7 @@ export type StatusEmpProjeto  = 'ativo' | 'inativo' | 'encerrado'
 export type StatusEstadual    = 'formalizada' | 'em_constituicao'
 export type StatusProjeto     = 'em_concorrencia' | 'em_fase_aprovacao' | 'em_execucao' | 'encerrado'
 export type CategoriaInstrumento = 'emenda' | 'mrosc' | 'outro'
-export type EntidadeTipo      = 'unisol_brasil' | 'unisol_estadual' | 'projeto' | 'diagnostico'
+export type EntidadeTipo      = 'unisol_brasil' | 'unisol_estadual' | 'projeto' | 'diagnostico' | 'empreendimento'
 export type EntidadeDiretoria = 'unisol_brasil' | 'unisol_estadual'
 
 // ─── Entidades ────────────────────────────────────────────────────────────────

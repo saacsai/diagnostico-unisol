@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, UnisolEstadual, Diagnostico, Projeto } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { CadastrarFiliadaDrawer } from './CadastrarFiliadaDrawer'
 
 export function FiliadasLista() {
   const [lista, setLista] = useState<Empreendimento[]>([])
@@ -12,6 +13,7 @@ export function FiliadasLista() {
   const [projetosPorEmp, setProjetosPorEmp] = useState<Record<string, Projeto[]>>({})
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
+  const [drawer, setDrawer] = useState(false)
 
   useEffect(() => {
     async function carregar() {
@@ -72,7 +74,12 @@ export function FiliadasLista() {
 
   return (
     <div>
-      <h1 className="text-lg font-bold mb-4" style={{ color: 'var(--primary)' }}>Filiadas</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>Filiadas</h1>
+        <button onClick={() => setDrawer(true)} className="text-sm font-medium text-white rounded-lg px-4 py-2" style={{ background: 'var(--primary)' }}>
+          + Cadastrar
+        </button>
+      </div>
 
       <input
         value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome, razão social ou CNPJ…"
@@ -136,6 +143,8 @@ export function FiliadasLista() {
           </table>
         </div>
       )}
+
+      <CadastrarFiliadaDrawer aberto={drawer} onFechar={() => setDrawer(false)} />
     </div>
   )
 }

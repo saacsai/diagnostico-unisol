@@ -28,5 +28,6 @@ export const TIPOS_DOCUMENTO = [
   { value: 'cnd_municipal', label: 'CND Municipal' },
   { value: 'plano_trabalho', label: 'Plano de Trabalho' },
   { value: 'relatorio_evolucao', label: 'Relatório de evolução' },
+  { value: 'ficha_filiacao', label: 'Ficha de filiação' },
   { value: 'outro', label: 'Outro' },
 ]
