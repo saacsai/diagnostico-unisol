@@ -3,11 +3,67 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getSupabase } from '@/lib/supabase'
 import { Diagnostico, Empreendimento, Usuario } from '@/lib/supabase'
+import { getDB, DiagnosticoLocal, EmpreendimentoLocal } from '@/lib/offline/db'
 import { secaoAtual } from '@/lib/diagnostico/secoesConfig'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { useAutosaveDiagnostico } from '@/lib/diagnostico/useAutosave'
+import { SyncStatusBadge } from '@/components/layout/SyncStatusBadge'
 import { SidebarSecoes } from './SidebarSecoes'
 import { renderSecao } from './renderSecao'
+
+function estaOnline() {
+  return typeof navigator === 'undefined' || navigator.onLine
+}
+
+// Dexie-primeiro: lê o que já existe localmente na hora (funciona sem sinal); se online,
+// também busca do Supabase e mescla — mas nunca sobrescreve um campo com edição local ainda
+// não sincronizada (_dirty*). Se offline e nada local, devolve null (shell mostra aviso).
+async function carregarDoDexieOuSupabase(diagnosticoId: string) {
+  const db = getDB()
+  const localDiag = await db.diagnosticos.get(diagnosticoId)
+  let diag: DiagnosticoLocal | null = localDiag ?? null
+  let temAnexoA = false
+
+  if (estaOnline()) {
+    try {
+      const sb = getSupabase()
+      const { data: remoto } = await sb.from('diagnosticos').select('*').eq('id', diagnosticoId).single()
+      if (remoto) {
+        const mesclado: DiagnosticoLocal = {
+          ...(remoto as Diagnostico),
+          respostas: localDiag?._dirtyRespostas ? localDiag.respostas : remoto.respostas,
+          analise_tecnica: localDiag?._dirtyAnaliseTecnica ? localDiag.analise_tecnica : remoto.analise_tecnica,
+          _dirtyRespostas: localDiag?._dirtyRespostas,
+          _dirtyAnaliseTecnica: localDiag?._dirtyAnaliseTecnica,
+        }
+        await db.diagnosticos.put(mesclado)
+        diag = mesclado
+      }
+      const { count } = await sb.from('documentos_institucionais').select('id', { count: 'exact', head: true })
+        .eq('entidade_tipo', 'diagnostico').eq('entidade_id', diagnosticoId)
+      temAnexoA = !!count && count > 0
+    } catch {
+      // navigator.onLine mentiu (sinal fraco) — segue só com o que já tinha local
+    }
+  }
+
+  if (!diag) return { diagnostico: null, empreendimento: null, temAnexoA: false }
+
+  const localEmp = await db.empreendimentos.get(diag.empreendimento_id)
+  let emp: EmpreendimentoLocal | null = localEmp ?? null
+  if (estaOnline()) {
+    try {
+      const { data: remotoEmp } = await getSupabase().from('empreendimentos').select('*').eq('id', diag.empreendimento_id).single()
+      if (remotoEmp) {
+        const mesclado: EmpreendimentoLocal = localEmp?._dirty ? localEmp : { ...(remotoEmp as Empreendimento) }
+        await db.empreendimentos.put(mesclado)
+        emp = mesclado
+      }
+    } catch { /* idem — segue local */ }
+  }
+
+  return { diagnostico: diag, empreendimento: emp, temAnexoA }
+}
 
 export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: string }) {
   const [carregando, setCarregando] = useState(true)
@@ -19,28 +75,32 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   const [analiseTecnica, setAnaliseTecnica] = useState<Record<string, unknown>>({})
   const [temAnexoA, setTemAnexoA] = useState(false)
 
-  const { status, salvarRespostas, salvarAnaliseTecnica } = useAutosaveDiagnostico(diagnosticoId)
+  const { salvarRespostas, salvarAnaliseTecnica } = useAutosaveDiagnostico(diagnosticoId)
 
   useEffect(() => {
     async function carregar() {
-      const sb = getSupabase()
-      const { data: sessao } = await sb.auth.getSession()
-      const userId = sessao.session?.user.id
-      const [{ data: diag }, { data: userRow }] = await Promise.all([
-        sb.from('diagnosticos').select('*').eq('id', diagnosticoId).single(),
-        userId ? sb.from('usuarios').select('*').eq('id', userId).single() : Promise.resolve({ data: null }),
-      ])
+      const { diagnostico: diag, empreendimento: emp, temAnexoA: anexo } = await carregarDoDexieOuSupabase(diagnosticoId)
       if (diag) {
-        setDiagnostico(diag as Diagnostico)
+        setDiagnostico(diag)
         setRespostas((diag.respostas as Record<string, unknown>) || {})
         setAnaliseTecnica((diag.analise_tecnica as Record<string, unknown>) || {})
-        const { data: emp } = await sb.from('empreendimentos').select('*').eq('id', diag.empreendimento_id).single()
-        setEmpreendimento(emp as Empreendimento)
-        const { count } = await sb.from('documentos_institucionais').select('id', { count: 'exact', head: true })
-          .eq('entidade_tipo', 'diagnostico').eq('entidade_id', diagnosticoId)
-        setTemAnexoA(!!count && count > 0)
+        setEmpreendimento(emp)
+        setTemAnexoA(anexo)
       }
-      setUsuario(userRow as Usuario)
+
+      const sb = getSupabase()
+      const cache = await getDB().sessaoUsuario.get('atual').catch(() => undefined)
+      try {
+        const { data: sessao } = await sb.auth.getSession()
+        const userId = sessao.session?.user.id
+        const { data: userRow } = userId
+          ? await sb.from('usuarios').select('*').eq('id', userId).single()
+          : { data: null }
+        setUsuario((userRow as Usuario) || (cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '' } : null))
+      } catch {
+        setUsuario(cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '' } : null)
+      }
+
       setCarregando(false)
     }
     carregar()
@@ -67,7 +127,13 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   }, [])
 
   if (carregando) return <div className="p-8 text-sm text-gray-400">Carregando…</div>
-  if (!diagnostico) return <div className="p-8 text-sm text-red-500">Diagnóstico não encontrado.</div>
+  if (!diagnostico) return (
+    <div className="p-8 text-sm text-red-500">
+      {estaOnline()
+        ? 'Diagnóstico não encontrado.'
+        : 'Este diagnóstico ainda não está salvo neste aparelho. Abra-o com internet ao menos uma vez antes de ir a campo.'}
+    </div>
+  )
 
   const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento, temAnexoA)
 
@@ -84,7 +150,7 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
           <p className="text-[11px] text-gray-400">Status: {diagnostico.status}</p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <SyncBadge status={status} />
+          <SyncStatusBadge />
           <a href="/diagnosticos" className="text-xs text-gray-400 hover:text-gray-600">Fechar</a>
         </div>
       </header>
@@ -117,16 +183,4 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
       </div>
     </div>
   )
-}
-
-function SyncBadge({ status }: { status: string }) {
-  const map: Record<string, { texto: string; cor: string }> = {
-    idle: { texto: '', cor: '#9ca3af' },
-    salvando: { texto: 'Salvando…', cor: '#9ca3af' },
-    salvo: { texto: 'Salvo', cor: 'var(--primary)' },
-    erro: { texto: 'Erro ao salvar', cor: '#dc2626' },
-  }
-  const s = map[status] ?? map.idle
-  if (!s.texto) return null
-  return <span className="text-[11px] font-medium" style={{ color: s.cor }}>{s.texto}</span>
 }

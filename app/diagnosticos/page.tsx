@@ -1,12 +1,14 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { getSupabase } from '@/lib/supabase'
 import { DiagnosticoWizardShell } from '@/components/diagnostico/wizard/DiagnosticoWizardShell'
 import { ListaDiagnosticos } from '@/components/diagnostico/wizard/ListaDiagnosticos'
 import { AppShell } from '@/components/layout/AppShell'
 
+// O gate de autenticação é só o do AppShell (com fallback offline-safe via cache local) — um
+// segundo getSession() aqui, sem esse fallback, redirecionaria pro /login sempre que a rede
+// falhasse antes do AppShell sequer montar, travando o técnico fora do próprio diagnóstico.
 export default function DiagnosticosPage() {
   return (
     <Suspense>
@@ -18,19 +20,6 @@ export default function DiagnosticosPage() {
 function DiagnosticosInner() {
   const params = useSearchParams()
   const id = params.get('id')
-  const [autenticado, setAutenticado] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    getSupabase().auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`
-        return
-      }
-      setAutenticado(true)
-    })
-  }, [])
-
-  if (autenticado !== true) return null
 
   return (
     <AppShell fullBleed={!!id}>

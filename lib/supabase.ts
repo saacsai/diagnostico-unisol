@@ -1,10 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const url  = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Singleton — criar um createClient() novo a cada chamada gera várias instâncias de
+// GoTrueClient competindo pelo mesmo localStorage/refresh token, o que fica arriscado assim
+// que existe um motor de sync rodando em paralelo com chamadas feitas por componentes.
+let cliente: SupabaseClient | null = null
 export function getSupabase() {
-  return createClient(url, anon)
+  if (!cliente) cliente = createClient(url, anon)
+  return cliente
 }
 
 export function getSupabaseAdmin() {

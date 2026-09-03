@@ -2,7 +2,17 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { getSupabase, Usuario } from '@/lib/supabase'
+import { getDB } from '@/lib/offline/db'
+import { iniciarSyncEngine } from '@/lib/offline/sync'
 import { AppSidebar } from './AppSidebar'
+import { SyncStatusBadge } from './SyncStatusBadge'
+
+function usuarioDoCache(cache: { usuarioId: string; nome: string; perfil: Usuario['perfil'] }): Usuario {
+  return {
+    id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil,
+    email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '',
+  }
+}
 
 const SIDEBAR_W = '224px'
 
@@ -11,20 +21,43 @@ export function AppShell({ children, fullBleed = false }: { children: React.Reac
   const [menuMobile, setMenuMobile] = useState(false)
 
   useEffect(() => {
+    iniciarSyncEngine()
     async function carregar() {
       const sb = getSupabase()
-      const { data: sessao } = await sb.auth.getSession()
-      if (!sessao.session) {
+      const cache = await getDB().sessaoUsuario.get('atual').catch(() => undefined)
+
+      let session = null
+      try {
+        const { data: sessaoData } = await sb.auth.getSession()
+        session = sessaoData.session
+      } catch {
+        session = null
+      }
+
+      if (!session) {
+        // getSession() pode falhar tentando renovar um token expirado sem sinal. Se já
+        // conhecemos alguém logado neste aparelho, não expulsa no meio do trabalho — só manda
+        // pro login de verdade quando não há nenhum vestígio de sessão local.
+        if (cache) { setUsuario(usuarioDoCache(cache)); return }
         window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`
         return
       }
-      const { data } = await sb.from('usuarios').select('*').eq('id', sessao.session.user.id).single()
-      if (data && !data.ativo) {
-        await sb.auth.signOut()
-        window.location.href = '/login?inativo=1'
-        return
+
+      try {
+        const { data, error } = await sb.from('usuarios').select('*').eq('id', session.user.id).single()
+        if (error) throw error
+        if (data && !data.ativo) {
+          await sb.auth.signOut()
+          window.location.href = '/login?inativo=1'
+          return
+        }
+        if (data) await getDB().sessaoUsuario.put({ id: 'atual', usuarioId: data.id, nome: data.nome, perfil: data.perfil })
+        setUsuario((data as Usuario) || null)
+      } catch {
+        // Leitura de usuarios falhou (offline) — cai pro cache local em vez de travar num
+        // perfil fixo, o que tiraria acesso às Seções 17-18 de um técnico de verdade.
+        setUsuario(cache ? usuarioDoCache(cache) : null)
       }
-      setUsuario((data as Usuario) || null)
     }
     carregar()
   }, [])
@@ -43,6 +76,7 @@ export function AppShell({ children, fullBleed = false }: { children: React.Reac
         </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo_unisol.png" alt="UNISOL Brasil" style={{ height: 28 }} className="w-auto object-contain" />
+        <div className="ml-auto"><SyncStatusBadge /></div>
       </div>
 
       <Suspense fallback={null}>

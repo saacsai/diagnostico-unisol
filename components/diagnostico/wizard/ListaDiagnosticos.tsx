@@ -1,41 +1,76 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Diagnostico, Empreendimento, UnisolEstadual } from '@/lib/supabase'
+import { getSupabase, Diagnostico, Empreendimento } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { useReferenciaEstaduais } from '@/lib/diagnostico/useReferenciaEstaduais'
+import { getDB } from '@/lib/offline/db'
 import { Drawer } from '@/components/layout/Drawer'
 import { NovoDiagnostico } from './NovoDiagnostico'
 
-type DiagnosticoComEmpreendimento = Diagnostico & { empreendimentos: Empreendimento | null }
+type DiagnosticoComEmpreendimento = Diagnostico & { empreendimentos: Empreendimento | null; _pendente?: boolean }
+
+function estaOnline() {
+  return typeof navigator === 'undefined' || navigator.onLine
+}
 
 export function ListaDiagnosticos() {
   const [lista, setLista] = useState<DiagnosticoComEmpreendimento[]>([])
-  const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
   const [carregando, setCarregando] = useState(true)
+  const [offline, setOffline] = useState(false)
   const [busca, setBusca] = useState('')
   const [filiacao, setFiliacao] = useState('todos')
   const [drawer, setDrawer] = useState(false)
   const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
 
+  const estaduais = useReferenciaEstaduais()
+
   async function carregar() {
     setCarregando(true)
-    const sb = getSupabase()
-    const [{ data }, { data: ests }] = await Promise.all([
-      sb.from('diagnosticos').select('*, empreendimentos(*)').order('created_at', { ascending: false }),
-      sb.from('unisol_estaduais').select('*').eq('status', 'formalizada').order('nome'),
-    ])
-    const diags = (data as DiagnosticoComEmpreendimento[]) || []
-    setLista(diags)
-    setEstaduais((ests as UnisolEstadual[]) || [])
+    const db = getDB()
 
-    if (diags.length > 0) {
-      const { data: docs } = await sb
-        .from('documentos_institucionais')
-        .select('entidade_id')
-        .eq('entidade_tipo', 'diagnostico')
-        .in('entidade_id', diags.map(d => d.id))
-      setIdsComAnexoA(new Set((docs || []).map((d: { entidade_id: string }) => d.entidade_id)))
+    if (estaOnline()) {
+      try {
+        const sb = getSupabase()
+        const { data } = await sb.from('diagnosticos').select('*, empreendimentos(*)').order('created_at', { ascending: false })
+        const diags = (data as DiagnosticoComEmpreendimento[]) || []
+        setLista(diags)
+        setOffline(false)
+
+        // Esquenta o cache local — o que foi visto online fica disponível offline depois.
+        if (diags.length > 0) {
+          await db.diagnosticos.bulkPut(diags.map(({ empreendimentos, _pendente, ...d }) => d))
+          const emps = diags.map(d => d.empreendimentos).filter((e): e is Empreendimento => !!e)
+          if (emps.length > 0) await db.empreendimentos.bulkPut(emps)
+
+          const { data: docs } = await sb
+            .from('documentos_institucionais')
+            .select('entidade_id')
+            .eq('entidade_tipo', 'diagnostico')
+            .in('entidade_id', diags.map(d => d.id))
+          setIdsComAnexoA(new Set((docs || []).map((d: { entidade_id: string }) => d.entidade_id)))
+        } else {
+          setIdsComAnexoA(new Set())
+        }
+        setCarregando(false)
+        return
+      } catch {
+        // sinal fraco no meio da busca — cai pro fallback local abaixo
+      }
     }
+
+    const [diagsLocais, empsLocais] = await Promise.all([db.diagnosticos.toArray(), db.empreendimentos.toArray()])
+    const empsPorId = new Map(empsLocais.map(e => [e.id, e]))
+    const combinados: DiagnosticoComEmpreendimento[] = diagsLocais
+      .map(d => ({
+        ...d,
+        empreendimentos: empsPorId.get(d.empreendimento_id) || null,
+        _pendente: !!d._dirtyRespostas || !!d._dirtyAnaliseTecnica || d._op === 'insert',
+      }))
+      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+    setLista(combinados)
+    setOffline(true)
+    setIdsComAnexoA(new Set())
     setCarregando(false)
   }
 
@@ -62,6 +97,12 @@ export function ListaDiagnosticos() {
           + Novo diagnóstico
         </button>
       </div>
+
+      {offline && (
+        <p className="text-xs rounded-lg p-2 mb-3 bg-amber-50 text-amber-700 border border-amber-200">
+          Sem sinal — mostrando os dados salvos neste aparelho.
+        </p>
+      )}
 
       <div className="flex gap-2 mb-3">
         <select value={filiacao} onChange={e => setFiliacao(e.target.value)}
@@ -97,6 +138,11 @@ export function ListaDiagnosticos() {
                     onClick={() => window.location.href = `/diagnosticos?id=${d.id}`}>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {d.empreendimentos?.nome_fantasia || d.empreendimentos?.razao_social || 'Empreendimento sem nome'}
+                      {d._pendente && (
+                        <span className="ml-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                          pendente de sincronizar
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       {d.empreendimentos?.municipio}{d.empreendimentos?.uf ? `/${d.empreendimentos.uf}` : ''}

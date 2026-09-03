@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
+import { getDB } from '@/lib/offline/db'
+import { sincronizar } from '@/lib/offline/sync'
 import { CampoTexto } from '../campos/CampoTexto'
+
+function estaOnline() {
+  return typeof navigator === 'undefined' || navigator.onLine
+}
 
 export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
   const [empreendimentos, setEmpreendimentos] = useState<Empreendimento[]>([])
@@ -14,13 +20,26 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
 
   useEffect(() => {
     async function carregar() {
-      const sb = getSupabase()
-      const [{ data: emps }, { data: diags }] = await Promise.all([
-        sb.from('empreendimentos').select('*').order('nome_fantasia'),
-        sb.from('diagnosticos').select('empreendimento_id'),
-      ])
-      const comDiagnostico = new Set(((diags as Pick<Diagnostico, 'empreendimento_id'>[]) || []).map(d => d.empreendimento_id))
-      setEmpreendimentos(((emps as Empreendimento[]) || []).filter(e => !comDiagnostico.has(e.id)))
+      const db = getDB()
+      if (estaOnline()) {
+        try {
+          const sb = getSupabase()
+          const [{ data: emps }, { data: diags }] = await Promise.all([
+            sb.from('empreendimentos').select('*').order('nome_fantasia'),
+            sb.from('diagnosticos').select('empreendimento_id'),
+          ])
+          if (emps) await db.empreendimentos.bulkPut(emps as Empreendimento[])
+          const comDiagnostico = new Set(((diags as Pick<Diagnostico, 'empreendimento_id'>[]) || []).map(d => d.empreendimento_id))
+          setEmpreendimentos(((emps as Empreendimento[]) || []).filter(e => !comDiagnostico.has(e.id)))
+          setCarregando(false)
+          return
+        } catch {
+          // sinal fraco no meio da busca — segue pro fallback local abaixo
+        }
+      }
+      const [locaisEmp, locaisDiag] = await Promise.all([db.empreendimentos.toArray(), db.diagnosticos.toArray()])
+      const comDiagnostico = new Set(locaisDiag.map(d => d.empreendimento_id))
+      setEmpreendimentos(locaisEmp.filter(e => !comDiagnostico.has(e.id)))
       setCarregando(false)
     }
     carregar()
@@ -34,21 +53,52 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
     setErro('')
     if (!empreendimentoId) { setErro('Selecione uma Filiada.'); return }
     setSalvando(true)
+
     const sb = getSupabase()
-    const { data: sessao } = await sb.auth.getSession()
-    const userId = sessao.session?.user.id
+    const db = getDB()
+    let userId: string | undefined
+    try {
+      const { data: sessao } = await sb.auth.getSession()
+      userId = sessao.session?.user.id
+    } catch { /* offline */ }
+    if (!userId) {
+      const cache = await db.sessaoUsuario.get('atual').catch(() => undefined)
+      userId = cache?.usuarioId
+    }
     if (!userId) { setErro('Sessão expirada, faça login de novo.'); setSalvando(false); return }
 
     const novoId = crypto.randomUUID()
-    const { error: erroDiag } = await sb.from('diagnosticos').insert({
+    const agora = new Date().toISOString()
+    await db.diagnosticos.put({
       id: novoId,
       empreendimento_id: empreendimentoId,
+      projeto_id: null,
+      versao: 1,
+      rotulo_versao: null,
+      relato_versao: null,
+      nome_empreendimento: null,
+      regiao: null,
+      uf: null,
+      municipio: null,
+      modalidade: null,
       aplicador_id: userId,
       status: 'rascunho',
       respostas: {},
       analise_tecnica: {},
+      pontuacao_total: null,
+      classificacao: null,
+      tecnico_analista_id: null,
+      device_id: null,
+      created_at: agora,
+      updated_at: agora,
+      deleted_at: null,
+      _op: 'insert',
+      versaoProvisoria: true,
     })
-    if (erroDiag) { setErro(`Erro ao criar diagnóstico: ${erroDiag.message}`); setSalvando(false); return }
+
+    // Já cria localmente (funciona offline); se tiver sinal, dispara o sync na hora em vez de
+    // esperar o próximo ciclo do motor — sem bloquear a navegação.
+    if (estaOnline()) void sincronizar()
 
     window.location.href = `/diagnosticos?id=${novoId}`
   }

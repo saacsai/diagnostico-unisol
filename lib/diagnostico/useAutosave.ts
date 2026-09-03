@@ -1,13 +1,20 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getSupabase } from '@/lib/supabase'
+import { getDB } from '@/lib/offline/db'
 
 export type SyncStatus = 'idle' | 'salvando' | 'salvo' | 'erro'
 
-// Versão ONLINE do autosave — grava direto no Supabase, debounced. A interface
-// (salvarRespostas/salvarAnaliseTecnica/status) é a mesma que a versão offline (Dexie+fila)
-// vai expor depois — trocar a implementação aqui não deve exigir mudar nenhuma seção.
+// Camada OFFLINE do autosave — grava no Dexie (IndexedDB), local e instantâneo, sem chamada de
+// rede nenhuma aqui. Quem manda os dados pro Supabase é o motor de sync (lib/offline/sync.ts),
+// em segundo plano, lendo os registros marcados _dirty*. A interface pública (nomes/retorno das
+// duas funções abaixo) é a mesma de antes — trocar a implementação não exigiu mudar nenhuma
+// seção do wizard.
+//
+// Pré-condição: o registro já precisa existir no Dexie antes do primeiro autosave (o wizard
+// shell garante isso — grava um `put` completo assim que carrega o diagnóstico, seja do cache
+// local ou de uma busca fresca no Supabase). Sem isso, um `update` num id inexistente vira nop.
+
 export function useAutosaveDiagnostico(diagnosticoId: string) {
   const [status, setStatus] = useState<SyncStatus>('idle')
   const timerRespostas = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -19,12 +26,11 @@ export function useAutosaveDiagnostico(diagnosticoId: string) {
   }, [])
 
   const gravar = useCallback(async (coluna: 'respostas' | 'analise_tecnica', valor: Record<string, unknown>) => {
-    setStatus('salvando')
-    const { error } = await getSupabase()
-      .from('diagnosticos')
-      .update({ [coluna]: valor })
-      .eq('id', diagnosticoId)
-    setStatus(error ? 'erro' : 'salvo')
+    const patch = coluna === 'respostas'
+      ? { respostas: valor, _dirtyRespostas: 1 as const, _localUpdatedAt: Date.now() }
+      : { analise_tecnica: valor, _dirtyAnaliseTecnica: 1 as const, _localUpdatedAt: Date.now() }
+    const atualizado = await getDB().diagnosticos.update(diagnosticoId, patch)
+    setStatus(atualizado ? 'salvo' : 'erro')
   }, [diagnosticoId])
 
   const salvarRespostas = useCallback((valor: Record<string, unknown>) => {
@@ -42,7 +48,6 @@ export function useAutosaveDiagnostico(diagnosticoId: string) {
   return { status, salvarRespostas, salvarAnaliseTecnica }
 }
 
-// Autosave de um empreendimento (Seção 2) — tabela separada, mesmo padrão debounced.
 export function useAutosaveEmpreendimento(empreendimentoId: string) {
   const [status, setStatus] = useState<SyncStatus>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -53,11 +58,10 @@ export function useAutosaveEmpreendimento(empreendimentoId: string) {
     if (timer.current) clearTimeout(timer.current)
     setStatus('salvando')
     timer.current = setTimeout(async () => {
-      const { error } = await getSupabase()
-        .from('empreendimentos')
-        .update(campos)
-        .eq('id', empreendimentoId)
-      setStatus(error ? 'erro' : 'salvo')
+      const atualizado = await getDB().empreendimentos.update(empreendimentoId, {
+        ...campos, _dirty: 1 as const, _localUpdatedAt: Date.now(),
+      })
+      setStatus(atualizado ? 'salvo' : 'erro')
     }, 600)
   }, [empreendimentoId])
 

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getSupabase, Empreendimento, UnisolEstadual } from '@/lib/supabase'
+import { Empreendimento } from '@/lib/supabase'
 import { useAutosaveEmpreendimento } from '@/lib/diagnostico/useAutosave'
+import { useReferenciaEstaduais } from '@/lib/diagnostico/useReferenciaEstaduais'
 import { CampoTexto } from '../campos/CampoTexto'
 import { CampoSelect } from '../campos/CampoSelect'
 import { CampoNumero } from '../campos/CampoNumero'
@@ -15,13 +15,7 @@ export function Secao02Identificacao({
   onChange: (e: Empreendimento) => void
 }) {
   const { status, salvar } = useAutosaveEmpreendimento(empreendimento.id)
-  const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
-
-  useEffect(() => {
-    getSupabase().from('unisol_estaduais').select('*').eq('ativo', true).then(({ data }) => {
-      setEstaduais((data as UnisolEstadual[]) || [])
-    })
-  }, [])
+  const estaduais = useReferenciaEstaduais()
 
   function set(patch: Partial<Empreendimento>) {
     const novo = { ...empreendimento, ...patch }
