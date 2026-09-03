@@ -1,4 +1,37 @@
-# Status — Diagnóstico UNISOL Brasil
+# Status — Sistema UNISOL Brasil
+
+## Domínio (2026-09-03)
+`sistema.unisolbrasil.org.br` é o domínio principal agora (CNAME
+`754232ffc198aa35.vercel-dns-017.com`, mesmo alvo de antes). `diagnostico.unisolbrasil.org.br`
+continua ativo/redirecionando — reposicionamento: Diagnóstico é um módulo do sistema, não o
+produto inteiro.
+
+## Camada institucional — CONCLUÍDA (2026-09-03)
+Evolução grande no mesmo dia: o app deixou de ser só "ferramenta de diagnóstico do CooperaMais"
+e virou o embrião do sistema de gestão institucional da UNISOL Brasil. Resumo — ver
+`.claude/plans/twinkling-imagining-fairy.md` pro racional completo:
+
+- **Correção importante de modelo**: diagnóstico pertence ao Filiado (empreendimento), não ao
+  Projeto — `diagnosticos.projeto_id` virou contexto opcional, `versao`/`rotulo_versao` (T0,
+  T1-2027...) é o mecanismo real de reaproveitamento entre projetos ao longo do tempo.
+- **`/instituicao`** — perfil UNISOL Brasil (CNPJ auto via BrasilAPI, endereço, representante),
+  diretoria (dado pessoal, só admin/tecnico vê) e documentos (upload real + validade + badge
+  vigente/vencendo/vencida).
+- **`/admin/estaduais/[id]`** — mesmo padrão, por UNISOL Estadual. Seed real: SP, Bahia, RS
+  completas (CNPJ/representante); Piauí/Ceará/Paraíba formalizadas sem detalhe; MT/AC/SE/MG/SC
+  em constituição.
+- **`/projetos` + `/projetos/[id]`** — projeto rico (financiador, termo de fomento, Transferegov,
+  status, datas de execução, documentos) + "Filiados vinculados" mostrando o diagnóstico mais
+  recente de cada empreendimento do projeto (é aqui que aparece "ABAM 100% (20/20)").
+- **Anexo A** migrou de checklist-texto pra upload real (mesmo mecanismo de documentos).
+- **Bloqueio mobile de verdade** (`SoDesktop`, viewport <1024px) em todas as telas de
+  cadastro/admin — só o wizard de diagnóstico funciona no celular.
+- **Dado sensível (CPF/RG) nunca vai pro repo público** — fica em
+  `supabase_seed_04_dados_reais_privado.sql` e `cooperamais/*.pdf`, ambos gitignored.
+
+**Pendente**: CNPJ das estaduais sem dado ainda (PI/CE/PB/MT/AC/SE/MG/SC) — cadastrar quando
+tiver a mão; offline de verdade (Dexie) continua sendo a próxima grande frente, escopo já
+confirmado (só o wizard, resto fica online-only + bloqueado no mobile).
 
 ## Fase 2 (wizard) — CONCLUÍDA versão ONLINE (2026-09-02)
 
