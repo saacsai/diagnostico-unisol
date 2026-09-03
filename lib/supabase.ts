@@ -38,6 +38,10 @@ export type FormaOrganizativa =
 export type Zona              = 'urbana' | 'rural' | 'transicao'
 export type VinculacaoUnisol  = 'filiado' | 'em_processo' | 'nao_filiado' | 'nao_sabe'
 export type StatusEmpProjeto  = 'ativo' | 'inativo' | 'encerrado'
+export type StatusEstadual    = 'formalizada' | 'em_constituicao'
+export type StatusProjeto     = 'em_concorrencia' | 'em_fase_aprovacao' | 'em_execucao' | 'encerrado'
+export type EntidadeTipo      = 'unisol_brasil' | 'unisol_estadual' | 'projeto' | 'diagnostico'
+export type EntidadeDiretoria = 'unisol_brasil' | 'unisol_estadual'
 
 // ─── Entidades ────────────────────────────────────────────────────────────────
 
@@ -59,7 +63,66 @@ export interface UnisolEstadual {
   id: string
   nome: string
   uf: string
+  cnpj: string | null
+  endereco: string | null
+  municipio: string | null
+  cep: string | null
+  site: string | null
+  status: StatusEstadual
+  representante_nome: string | null
+  representante_cargo: string | null
+  representante_rg: string | null
+  representante_cpf: string | null
+  representante_tel: string | null
+  representante_email: string | null
   ativo: boolean
+  created_at: string
+}
+
+export interface UnisolBrasil {
+  id: string
+  nome: string
+  cnpj: string | null
+  endereco: string | null
+  municipio: string | null
+  uf: string | null
+  cep: string | null
+  site: string | null
+  representante_nome: string | null
+  representante_cargo: string | null
+  representante_rg: string | null
+  representante_cpf: string | null
+  representante_tel: string | null
+  representante_email: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface DiretoriaMembro {
+  id: string
+  entidade_tipo: EntidadeDiretoria
+  entidade_id: string
+  nome_completo: string
+  cargo: string | null
+  endereco: string | null
+  email: string | null
+  telefone: string | null
+  cpf: string | null
+  rg: string | null
+  created_at: string
+}
+
+export interface DocumentoInstitucional {
+  id: string
+  entidade_tipo: EntidadeTipo
+  entidade_id: string
+  tipo_documento: string
+  nome_arquivo: string | null
+  storage_path: string
+  data_emissao: string | null
+  data_validade: string | null
+  observacao: string | null
+  uploaded_by: string | null
   created_at: string
 }
 
@@ -100,6 +163,15 @@ export interface Projeto {
   id: string
   nome: string
   descricao: string | null
+  resumo: string | null
+  financiador: string | null
+  orgao_responsavel: string | null
+  tipo_instrumento: string | null
+  numero_termo_fomento: string | null
+  numero_transferegov: string | null
+  status: StatusProjeto
+  data_inicio_execucao: string | null
+  data_fim_execucao: string | null
   ativo: boolean
   created_at: string
 }
@@ -116,8 +188,11 @@ export interface EmpreendimentoProjeto {
 export interface Diagnostico {
   id: string
   empreendimento_id: string
-  projeto_id: string
+  /** Contexto opcional — "coletado no âmbito de X". Diagnóstico pertence ao Filiado, não ao projeto. */
+  projeto_id: string | null
   versao: number
+  /** Rótulo legível da versão, ex: 'T0', 'T1-2027' */
+  rotulo_versao: string | null
   /** Snapshot no momento da criação — fonte de verdade é empreendimentos.nome_fantasia */
   nome_empreendimento: string | null
   regiao: string | null

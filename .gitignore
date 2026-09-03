@@ -27,6 +27,11 @@
 # assets de referência (não usados pelo app — o que é usado já está em public/)
 /Logo/
 
+# documentos institucionais sensíveis (CPF, RG, CNPJ, dados de fomento assinados)
+# repo é público — nunca versionar PDFs originais desses planos/anexos, nem seeds com PII real
+/cooperamais/*.pdf
+supabase_seed_*_privado.sql
+
 # misc
 .DS_Store
 *.pem
