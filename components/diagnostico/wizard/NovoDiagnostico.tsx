@@ -68,9 +68,7 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
   }
 
   return (
-    <div className="max-w-lg mx-auto lg:mx-0 space-y-4">
-        <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>Novo diagnóstico</h1>
-
+    <div className="space-y-4">
         <div className="flex gap-2">
           <button onClick={() => setModo('existente')}
             className="flex-1 text-sm font-medium rounded-lg py-2 border"

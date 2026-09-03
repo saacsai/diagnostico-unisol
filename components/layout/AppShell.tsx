@@ -6,7 +6,7 @@ import { AppSidebar } from './AppSidebar'
 
 const SIDEBAR_W = '224px'
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, fullBleed = false }: { children: React.ReactNode; fullBleed?: boolean }) {
   const [usuario, setUsuario] = useState<Usuario | null | undefined>(undefined)
   const [menuMobile, setMenuMobile] = useState(false)
 
@@ -48,7 +48,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         onMobileFechar={() => setMenuMobile(false)}
       />
 
-      <main className="p-4 lg:p-8 pt-[72px] lg:pt-8 lg:ml-[224px]" style={{ minHeight: '100vh' }}>
+      <main
+        className={fullBleed ? 'pt-14 lg:pt-0 lg:ml-[224px]' : 'p-4 lg:p-8 pt-[72px] lg:pt-8 lg:ml-[224px]'}
+        style={{ minHeight: '100vh' }}
+      >
         {children}
       </main>
     </div>

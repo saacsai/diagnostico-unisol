@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getSupabase } from '@/lib/supabase'
 import { Diagnostico, Empreendimento, Usuario } from '@/lib/supabase'
-import { SECOES, secaoAtual } from '@/lib/diagnostico/secoesConfig'
+import { secaoAtual } from '@/lib/diagnostico/secoesConfig'
+import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { useAutosaveDiagnostico } from '@/lib/diagnostico/useAutosave'
 import { SidebarSecoes } from './SidebarSecoes'
 import { renderSecao } from './renderSecao'
@@ -64,18 +65,13 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   if (carregando) return <div className="p-8 text-sm text-gray-400">Carregando…</div>
   if (!diagnostico) return <div className="p-8 text-sm text-red-500">Diagnóstico não encontrado.</div>
 
-  const completas: Record<string, boolean> = {}
-  for (const s of SECOES) {
-    if (s.destino === 'respostas') completas[s.id] = !!respostas[s.id]
-    else if (s.destino === 'analise_tecnica') completas[s.id] = !!analiseTecnica[s.id]
-    else if (s.destino === 'empreendimento') completas[s.id] = !!empreendimento?.nome_fantasia
-  }
+  const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento)
 
   const cfg = secaoAtual(secaoId)
   const perfilUsuario = usuario?.perfil ?? 'aplicador'
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col">
       <header className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 bg-white flex-shrink-0">
         <div className="min-w-0">
           <p className="text-sm font-semibold truncate" style={{ color: 'var(--primary)' }}>
