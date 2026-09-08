@@ -59,6 +59,8 @@ export interface Usuario {
   perfil: Perfil
   instituicao: string | null
   unisol_estadual_id: string | null
+  /** Vínculo com o banco de talentos (tecnicos) — quem é essa pessoa no cadastro de técnicos */
+  tecnico_id: string | null
   ativo: boolean
   created_at: string
 }
@@ -210,6 +212,19 @@ export interface EquipeProjeto {
   data_entrada: string
   data_saida: string | null
   ativo: boolean
+  created_at: string
+}
+
+// Atribuição de responsabilidade — técnico X é responsável por visitar o empreendimento Y,
+// dentro do projeto Z. Existe antes de qualquer diagnóstico (trabalho planejado), diferente
+// de diagnosticos.aplicador_id/tecnico_analista_id (quem já mexeu, histórico).
+export interface TecnicoEmpreendimentoProjeto {
+  id: string
+  tecnico_id: string
+  empreendimento_id: string
+  projeto_id: string
+  data_atribuicao: string
+  observacao: string | null
   created_at: string
 }
 

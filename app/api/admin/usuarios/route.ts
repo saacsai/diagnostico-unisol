@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 })
 
   const body = await req.json()
-  const { nome, email, senha, perfil, instituicao, unisol_estadual_id } = body
+  const { nome, email, senha, perfil, instituicao, unisol_estadual_id, tecnico_id } = body
 
   if (!nome || !email || !senha || !perfil) {
     return NextResponse.json({ error: 'nome, email, senha e perfil são obrigatórios.' }, { status: 400 })
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     id: novoUser.user.id, nome, email, perfil,
     instituicao: instituicao || null,
     unisol_estadual_id: unisol_estadual_id || null,
+    tecnico_id: tecnico_id || null,
   })
   if (erroPerfil) {
     await sbAdmin.auth.admin.deleteUser(novoUser.user.id)

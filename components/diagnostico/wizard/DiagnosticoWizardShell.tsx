@@ -96,9 +96,9 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
         const { data: userRow } = userId
           ? await sb.from('usuarios').select('*').eq('id', userId).single()
           : { data: null }
-        setUsuario((userRow as Usuario) || (cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '' } : null))
+        setUsuario((userRow as Usuario) || (cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, tecnico_id: null, ativo: true, created_at: '' } : null))
       } catch {
-        setUsuario(cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '' } : null)
+        setUsuario(cache ? { id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil, email: '', instituicao: null, unisol_estadual_id: null, tecnico_id: null, ativo: true, created_at: '' } : null)
       }
 
       setCarregando(false)

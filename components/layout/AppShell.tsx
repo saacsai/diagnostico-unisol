@@ -11,7 +11,7 @@ import { MobileTabBar } from './MobileTabBar'
 function usuarioDoCache(cache: { usuarioId: string; nome: string; perfil: Usuario['perfil'] }): Usuario {
   return {
     id: cache.usuarioId, nome: cache.nome, perfil: cache.perfil,
-    email: '', instituicao: null, unisol_estadual_id: null, ativo: true, created_at: '',
+    email: '', instituicao: null, unisol_estadual_id: null, tecnico_id: null, ativo: true, created_at: '',
   }
 }
 

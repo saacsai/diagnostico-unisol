@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Usuario, UnisolEstadual, Perfil } from '@/lib/supabase'
+import { getSupabase, Usuario, UnisolEstadual, Tecnico, Perfil } from '@/lib/supabase'
 import { Drawer } from '@/components/layout/Drawer'
 
 function gerarSenhaTemp() {
@@ -11,7 +11,7 @@ function gerarSenhaTemp() {
   return s + '!1'
 }
 
-const VAZIO = { nome: '', email: '', perfil: 'aplicador' as Perfil, instituicao: '', unisol_estadual_id: '', ativo: true }
+const VAZIO = { nome: '', email: '', perfil: 'aplicador' as Perfil, instituicao: '', unisol_estadual_id: '', tecnico_id: '', ativo: true }
 
 const LABEL_PERFIL: Record<Perfil, string> = {
   aplicador: 'Aplicador (técnico de campo)',
@@ -22,6 +22,7 @@ const LABEL_PERFIL: Record<Perfil, string> = {
 export function UsuariosAdmin() {
   const [lista, setLista] = useState<Usuario[]>([])
   const [estaduais, setEstaduais] = useState<UnisolEstadual[]>([])
+  const [tecnicos, setTecnicos] = useState<Tecnico[]>([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [drawer, setDrawer] = useState(false)
@@ -34,12 +35,14 @@ export function UsuariosAdmin() {
   async function carregar() {
     setCarregando(true)
     const sb = getSupabase()
-    const [{ data: u }, { data: e }] = await Promise.all([
+    const [{ data: u }, { data: e }, { data: t }] = await Promise.all([
       sb.from('usuarios').select('*').order('nome'),
       sb.from('unisol_estaduais').select('*').order('nome'),
+      sb.from('tecnicos').select('*').order('nome'),
     ])
     setLista((u as Usuario[]) || [])
     setEstaduais((e as UnisolEstadual[]) || [])
+    setTecnicos((t as Tecnico[]) || [])
     setCarregando(false)
   }
   useEffect(() => { carregar() }, [])
@@ -52,7 +55,8 @@ export function UsuariosAdmin() {
     setEditandoId(u.id)
     setForm({
       nome: u.nome, email: u.email, perfil: u.perfil,
-      instituicao: u.instituicao ?? '', unisol_estadual_id: u.unisol_estadual_id ?? '', ativo: u.ativo,
+      instituicao: u.instituicao ?? '', unisol_estadual_id: u.unisol_estadual_id ?? '',
+      tecnico_id: u.tecnico_id ?? '', ativo: u.ativo,
     })
     setErro(''); setCriado(null); setDrawer(true)
   }
@@ -67,7 +71,8 @@ export function UsuariosAdmin() {
     if (editandoId) {
       const { error } = await sb.from('usuarios').update({
         nome: form.nome, perfil: form.perfil, instituicao: form.instituicao || null,
-        unisol_estadual_id: form.unisol_estadual_id || null, ativo: form.ativo,
+        unisol_estadual_id: form.unisol_estadual_id || null,
+        tecnico_id: form.tecnico_id || null, ativo: form.ativo,
       }).eq('id', editandoId)
       if (error) { setErro(error.message); setSalvando(false); return }
       setDrawer(false); setSalvando(false); carregar()
@@ -81,7 +86,7 @@ export function UsuariosAdmin() {
     const res = await fetch('/api/admin/usuarios', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, senha, unisol_estadual_id: form.unisol_estadual_id || null }),
+      body: JSON.stringify({ ...form, senha, unisol_estadual_id: form.unisol_estadual_id || null, tecnico_id: form.tecnico_id || null }),
     })
     const json = await res.json()
     if (!res.ok) { setErro(json.error || 'Erro ao criar usuário.'); setSalvando(false); return }
@@ -185,6 +190,15 @@ export function UsuariosAdmin() {
                 <option value="">— Direto na Nacional —</option>
                 {estaduais.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Técnico vinculado (opcional)</label>
+              <select value={form.tecnico_id} onChange={e => setForm(p => ({ ...p, tecnico_id: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]">
+                <option value="">— Sem vínculo —</option>
+                {tecnicos.map(t => <option key={t.id} value={t.id}>{t.nome}</option>)}
+              </select>
+              <p className="text-[11px] text-gray-400 mt-1">Liga esse login ao cadastro de Técnicos — é o que faz o dashboard pessoal funcionar.</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Instituição (texto livre)</label>
