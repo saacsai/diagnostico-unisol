@@ -227,15 +227,21 @@ export interface Bloco8Demandas {
 }
 
 // ── Seção 16 — Parcerias, políticas públicas e incidência ─────────────────────
+// ── Bloco 10 — Módulos Complementares por Segmento Produtivo (NOVO) ────────
+// Preencher apenas a observação do módulo correspondente à cadeia principal do Bloco 6.1.1;
+// as exigências específicas de cada segmento são referência fixa do instrumento (não editáveis).
+export interface Bloco10Modulos {
+  observacoes: Record<string, string>   // chave = segmento, valor = observações técnicas do empreendimento
+}
+
 // ── Seção 17 — Análise de maturidade e priorização técnica (TÉCNICO) ──────────
-export interface Secao17Analise {
-  dimensoes: LinhaTabela[]   // nota 0-4/evidência/prioridade × 13 dimensões
-  pontuacao_total: number | null   // soma das 13 dimensões, máx. 52
+// ── Bloco 11 — Classificação da Régua de Maturidade (TÉCNICO) ──────────────
+// Potencialidades/gargalos/riscos saíram (duplicata — vivem no Bloco 8).
+// "Cadeia territorial de vínculo" não consta no documento revisado.
+export interface Bloco11Regua {
+  dimensoes: LinhaTabela[]   // nota 0-4/N-A/evidência/prioridade × 11 dimensões
+  pontuacao_total: number | null   // soma das dimensões válidas, máx. 44
   classificacao: 'emergencial' | 'inicial' | 'em_desenvolvimento' | 'estruturado' | 'consolidado' | ''
-  potencialidades: string
-  gargalos_prioritarios: string
-  riscos_participacao: string
-  cadeia_territorial_vinculo: string
   prontidao_ecouni: 'imediata' | 'com_apoio_previo' | 'condicionada_regularizacao' | 'reavaliar' | ''
 }
 
@@ -269,7 +275,8 @@ export interface RespostasDiagnostico {
 }
 
 export interface AnaliseTecnicaDiagnostico {
-  secao17?: Secao17Analise
+  bloco10?: Bloco10Modulos
+  bloco11?: Bloco11Regua
   secao18?: Secao18PlanoAcao
   anexoA?: AnexoAEvidencias
   anexoB?: AnexoBSintese

@@ -1,32 +1,30 @@
-// Seção 17 — soma as 13 dimensões (0-4 cada, máx. 52) e deriva a classificação
-// pelas faixas de média oficiais do formulário.
+// Bloco 11 — soma as 11 dimensões (0-4 cada, N/A exclui do denominador; máx. 44) e
+// deriva a classificação pelas faixas de média oficiais do documento revisado.
 
 export const DIMENSOES_MATURIDADE = [
-  { chave: 'governanca', label: 'Governança e autogestão' },
-  { chave: 'regularidade_juridica', label: 'Regularidade jurídica/institucional' },
-  { chave: 'gestao_administrativa', label: 'Gestão administrativa e financeira' },
-  { chave: 'producao_qualidade', label: 'Produção e controle de qualidade' },
-  { chave: 'infraestrutura', label: 'Infraestrutura e beneficiamento' },
-  { chave: 'regularizacao_embalagem', label: 'Regularização, embalagem e rastreabilidade' },
-  { chave: 'comercializacao', label: 'Comercialização e acesso a mercados' },
-  { chave: 'logistica', label: 'Logística e armazenamento' },
-  { chave: 'intercooperacao', label: 'Intercooperação e atuação em rede' },
-  { chave: 'tecnologia', label: 'Tecnologia e inserção digital' },
-  { chave: 'sustentabilidade', label: 'Sustentabilidade ambiental' },
-  { chave: 'genero_juventude', label: 'Igualdade de gênero e juventude' },
-  { chave: 'capacidade_formativa', label: 'Capacidade formativa/participação' },
+  { chave: 'identificacao_territorialidade', label: 'Identificação e territorialidade (Bloco 0)' },
+  { chave: 'documentacao_regularidade', label: 'Documentação e regularidade (Bloco 1)' },
+  { chave: 'gestao_governanca', label: 'Gestão e governança (Bloco 2)' },
+  { chave: 'gestao_pessoas', label: 'Gestão de pessoas (Bloco 3)' },
+  { chave: 'gestao_financeira', label: 'Gestão financeira (Bloco 4)' },
+  { chave: 'gestao_comercial', label: 'Gestão comercial e acesso a mercados (Bloco 5)' },
+  { chave: 'producao_infraestrutura_qualidade', label: 'Produção, infraestrutura e qualidade (Bloco 6)' },
+  { chave: 'sustentabilidade_socioambiental', label: 'Sustentabilidade socioambiental (Bloco 7)' },
+  { chave: 'logistica_intercooperacao', label: 'Logística e intercooperação (Bloco 9)' },
+  { chave: 'tecnologia_insercao_digital', label: 'Tecnologia e inserção digital (Bloco 9)' },
+  { chave: 'capacidade_formativa', label: 'Capacidade formativa e participação de beneficiários (Parte B)' },
 ] as const
 
 export function calcularPontuacao(dimensoes: Record<string, { nota?: string | number }>) {
   const notas = DIMENSOES_MATURIDADE
     .map(d => dimensoes[d.chave]?.nota)
-    .filter(n => n !== undefined && n !== null && n !== '')
+    .filter(n => n !== undefined && n !== null && n !== '' && n !== 'na')
     .map(Number)
 
   if (notas.length === 0) return { total: null, media: null, classificacao: '' as const }
 
   const total = notas.reduce((s, n) => s + n, 0)
-  const media = total / DIMENSOES_MATURIDADE.length
+  const media = total / notas.length
 
   let classificacao: 'emergencial' | 'inicial' | 'em_desenvolvimento' | 'estruturado' | 'consolidado'
   if (media < 1.0) classificacao = 'emergencial'

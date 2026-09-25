@@ -11,7 +11,8 @@ import { SecaoBloco5Comercial } from '../secoes/SecaoBloco5Comercial'
 import { SecaoBloco9Adaptacao } from '../secoes/SecaoBloco9Adaptacao'
 import { SecaoBloco7Socioambiental } from '../secoes/SecaoBloco7Socioambiental'
 import { SecaoBloco8Demandas } from '../secoes/SecaoBloco8Demandas'
-import { Secao17Analise } from '../secoes/Secao17Analise'
+import { SecaoBloco10Modulos } from '../secoes/SecaoBloco10Modulos'
+import { SecaoBloco11Regua } from '../secoes/SecaoBloco11Regua'
 import { Secao18PlanoAcao } from '../secoes/Secao18PlanoAcao'
 import { AnexoAEvidencias } from '../secoes/AnexoAEvidencias'
 import { AnexoBSintese } from '../secoes/AnexoBSintese'
@@ -47,7 +48,8 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'bloco7': return <SecaoBloco7Socioambiental dados={r as never} onChange={onR} />
     case 'bloco8': return <SecaoBloco8Demandas dados={r as never} onChange={onR} />
     case 'bloco9': return <SecaoBloco9Adaptacao dados={r as never} onChange={onR} />
-    case 'secao17': return <Secao17Analise dados={a as never} onChange={onA} />
+    case 'bloco10': return <SecaoBloco10Modulos dados={a as never} onChange={onA} />
+    case 'bloco11': return <SecaoBloco11Regua dados={a as never} onChange={onA} />
     case 'secao18': return <Secao18PlanoAcao dados={a as never} onChange={onA} />
     case 'anexoA':  return <AnexoAEvidencias diagnosticoId={ctx.diagnosticoId} />
     case 'anexoB':  return <AnexoBSintese dados={a as never} onChange={onA} />
