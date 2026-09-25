@@ -1,5 +1,40 @@
 # Status — Sistema UNISOL Brasil
 
+## Dashboard pós-login + atribuição técnico×Filiada×Projeto (2026-09-08)
+
+Migration 11: `usuarios.tecnico_id` (liga o login ao cadastro de talentos — não existia antes)
++ `tecnico_empreendimento_projeto` (atribuição de responsabilidade: quem visita qual Filiada,
+varia por projeto, existe *antes* de qualquer diagnóstico começar — diferente de
+`aplicador_id`/`tecnico_analista_id`, que só registram quem já mexeu num diagnóstico existente).
+
+Nova seção **Atribuições** no detalhe do Projeto (mesmo padrão de Equipe/Filiados vinculados) —
+só oferece técnicos já alocados e Filiadas já vinculadas àquele projeto especificamente.
+
+**`/dashboard` sai do estágio de redirect fixo**: admin/aplicador vê totais gerais (diagnósticos
+concluídos/abertos, Filiadas, Projetos ativos); técnico vê "meus diagnósticos" calculado como
+união de histórico (o que ele já tocou) + atribuição (Filiadas dele sem diagnóstico ainda contam
+como em aberto) — sem o vínculo `usuarios.tecnico_id`, cai num fallback só-histórico com aviso.
+Visual do hero inspirado na referência que o Luciano trouxe (`Logo/referencia_tela_cel.png`):
+header escuro com saudação + ícone "O" (globo) à direita, card de destaque, folha branca
+sobreposta com os números.
+
+**Fecha o item que estava pendente desde 2026-09-03** ("vínculo técnico×Filiadas — não existe,
+precisa ser criado").
+
+## PWA/mobile: ícones definitivos + navegação nativa (2026-09-03, rodada extra da mesma sessão do Dexie)
+
+- Ícone da PWA (`icon-192`/`icon-512`) trocado 2x: primeiro só o "O" do UNISOL (globo estilo
+  bandeira do Brasil, recortado do logotipo), depois a wordmark UNISOL Brasil completa enviada
+  pelo Luciano — favicon (`app/icon.png`) ficou fixo no globo recortado, por pedido explícito
+  (mais legível pequeno que a wordmark inteira).
+- Sidebar completa (Cadastros/Projetos/Administração) escondida no mobile — só faz sentido no
+  desktop, já que quase tudo lá é bloqueado mesmo (`SoDesktop`). Trocada por barra fixa no
+  rodapé, estilo app nativo, só com o que funciona no aparelho: Diagnósticos e Sair.
+- Zoom por pinça travado no mobile (mesmo padrão do Cooperliga) — mais cara de app, menos de
+  site.
+- **Teste rápido em modo avião registrado**: passou (editar/salvar local, sincronizar ao
+  voltar) — mas é só o teste curto, não o de período longo (ver pendência abaixo).
+
 ## Auth: SMTP próprio + fluxo de senha corrigido (2026-09-03)
 Dois problemas reais encontrados e corrigidos no fluxo "Esqueci minha senha":
 1. **Página `/redefinir-senha` não existia** — o login já chamava `resetPasswordForEmail` com
