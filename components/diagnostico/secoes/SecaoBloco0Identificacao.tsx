@@ -9,7 +9,7 @@ import { CampoNumero } from '../campos/CampoNumero'
 import { EscalaMaturidade0a4 } from '../campos/EscalaMaturidade0a4'
 import { BuscarCnpjBotao } from '@/components/institucional/BuscarCnpjBotao'
 
-export function Secao02Identificacao({
+export function SecaoBloco0Identificacao({
   empreendimento, onChange,
 }: {
   empreendimento: Empreendimento

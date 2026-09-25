@@ -16,7 +16,7 @@ export interface LinhaTabela {
 // só dentro do texto livre de A.2), A.7 datas de aplicação/corte do Marco 0 —
 // campos novos. A.7.1/A.7.2 são notas de orientação impressas no formulário
 // (período de referência, convenção NI/NA/NV), não campos de resposta.
-export interface Secao01Controle {
+export interface ParteAControle {
   codigo_empreendimento: string
   aplicador_nome: string
   aplicador_instituicao: string
@@ -268,7 +268,7 @@ export interface AnexoBSintese {
 }
 
 export interface RespostasDiagnostico {
-  secao01?: Secao01Controle
+  parteA?: ParteAControle
   parteB?: ParteBBeneficiarios
   bloco1?: Bloco1Documentacao
   bloco2?: Bloco2Governanca

@@ -1,11 +1,11 @@
 'use client'
 
-import { Secao01Controle as T } from '@/lib/diagnostico/schema'
+import { ParteAControle as T } from '@/lib/diagnostico/schema'
 import { CampoTexto } from '../campos/CampoTexto'
 import { CampoSelect } from '../campos/CampoSelect'
 import { CampoData } from '../campos/CampoData'
 
-export function Secao01Controle({ dados, onChange }: { dados: Partial<T>; onChange: (d: Partial<T>) => void }) {
+export function SecaoParteAControle({ dados, onChange }: { dados: Partial<T>; onChange: (d: Partial<T>) => void }) {
   const set = (patch: Partial<T>) => onChange({ ...dados, ...patch })
   return (
     <div className="space-y-4">

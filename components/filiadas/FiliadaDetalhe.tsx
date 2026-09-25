@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { Drawer } from '@/components/layout/Drawer'
-import { Secao02Identificacao } from '@/components/diagnostico/secoes/Secao02Identificacao'
+import { SecaoBloco0Identificacao } from '@/components/diagnostico/secoes/SecaoBloco0Identificacao'
 
 export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string }) {
   const [emp, setEmp] = useState<Empreendimento | null>(null)
@@ -85,7 +85,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--primary)' }}>Cadastro</h2>
-        <Secao02Identificacao empreendimento={emp} onChange={setEmp} />
+        <SecaoBloco0Identificacao empreendimento={emp} onChange={setEmp} />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">

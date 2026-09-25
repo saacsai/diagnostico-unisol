@@ -70,7 +70,7 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   const [diagnostico, setDiagnostico] = useState<Diagnostico | null>(null)
   const [empreendimento, setEmpreendimento] = useState<Empreendimento | null>(null)
   const [usuario, setUsuario] = useState<Usuario | null>(null)
-  const [secaoId, setSecaoId] = useState('secao01')
+  const [secaoId, setSecaoId] = useState('parteA')
   const [respostas, setRespostas] = useState<Record<string, unknown>>({})
   const [analiseTecnica, setAnaliseTecnica] = useState<Record<string, unknown>>({})
   const [temAnexoA, setTemAnexoA] = useState(false)

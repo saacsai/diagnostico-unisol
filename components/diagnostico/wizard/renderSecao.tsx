@@ -1,6 +1,6 @@
 import { Empreendimento } from '@/lib/supabase'
-import { Secao02Identificacao } from '../secoes/Secao02Identificacao'
-import { Secao01Controle } from '../secoes/Secao01Controle'
+import { SecaoBloco0Identificacao } from '../secoes/SecaoBloco0Identificacao'
+import { SecaoParteAControle } from '../secoes/SecaoParteAControle'
 import { SecaoParteBBeneficiarios } from '../secoes/SecaoParteBBeneficiarios'
 import { SecaoBloco1Documentacao } from '../secoes/SecaoBloco1Documentacao'
 import { SecaoBloco2Governanca } from '../secoes/SecaoBloco2Governanca'
@@ -34,17 +34,17 @@ export function renderSecao(id: string, ctx: SecaoContext) {
   const onA = (dados: unknown) => ctx.setAnaliseSecao(id, dados)
 
   switch (id) {
-    case 'secao01': return <Secao01Controle dados={r as never} onChange={onR} />
-    case 'secao02': return ctx.empreendimento
-      ? <Secao02Identificacao empreendimento={ctx.empreendimento} onChange={ctx.setEmpreendimento} />
+    case 'parteA': return <SecaoParteAControle dados={r as never} onChange={onR} />
+    case 'bloco0': return ctx.empreendimento
+      ? <SecaoBloco0Identificacao empreendimento={ctx.empreendimento} onChange={ctx.setEmpreendimento} />
       : <p className="text-sm text-gray-400">Empreendimento não carregado.</p>
     case 'parteB': return <SecaoParteBBeneficiarios dados={r as never} onChange={onR} />
     case 'bloco1': return <SecaoBloco1Documentacao dados={r as never} onChange={onR} />
     case 'bloco2': return <SecaoBloco2Governanca dados={r as never} onChange={onR} />
     case 'bloco3': return <SecaoBloco3Pessoas dados={r as never} onChange={onR} />
     case 'bloco4': return <SecaoBloco4Financeiro dados={r as never} onChange={onR} />
-    case 'bloco6': return <SecaoBloco6Processos dados={r as never} onChange={onR} />
     case 'bloco5': return <SecaoBloco5Comercial dados={r as never} onChange={onR} />
+    case 'bloco6': return <SecaoBloco6Processos dados={r as never} onChange={onR} />
     case 'bloco7': return <SecaoBloco7Socioambiental dados={r as never} onChange={onR} />
     case 'bloco8': return <SecaoBloco8Demandas dados={r as never} onChange={onR} />
     case 'bloco9': return <SecaoBloco9Adaptacao dados={r as never} onChange={onR} />
