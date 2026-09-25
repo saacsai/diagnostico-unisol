@@ -109,24 +109,30 @@ export interface Bloco3Pessoas {
   regua_evidencia: string
 }
 
-// ── Seção 6 — Gestão administrativa, financeira e contábil ────────────────────
-export interface Secao06Financeiro {
+// ── Bloco 4 — Gestão Financeira ────────────────────────────────────────────────
+// "Separa finanças pessoais" saiu daqui (duplicata — vive só em Bloco 3.2).
+// "Maturidade financeira" isolada virou a régua de fechamento do bloco.
+export interface Bloco4Financeiro {
   conta_bancaria: 'sim' | 'nao' | 'em_abertura' | ''
   contabilidade: 'contador_contratado' | 'apoio_parceiro' | 'interna' | 'nao_possui' | ''
   registra_receitas_despesas: 'mensalmente' | 'as_vezes' | 'nao' | 'nao_sabe' | ''
   fluxo_caixa: 'sim_atualiza' | 'sim_desatualizado' | 'nao' | ''
   calcula_custos_precos: 'todos' | 'alguns' | 'nao' | ''
-  separa_financas: 'sempre' | 'parcialmente' | 'nao' | ''
   indicadores_financeiros: LinhaTabela[]   // valor+observação × 7 indicadores
   receita_media_mensal: string
   acessou_credito: 'sim' | 'tentou_nao_conseguiu' | 'nao_tentou' | 'sem_interesse' | ''
   credito_detalhe: string
   necessidade_financiamento: string
-  maturidade_financeira: Escala0a4
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
 // ── Seção 7 — Atividade econômica, cadeia produtiva e produtos ────────────────
-export interface Secao07Producao {
+// ── Bloco 6 — Gestão dos Processos Produtivos (funde Produção + Infraestrutura + Qualidade) ──
+// "Riscos de segurança/EPIs" saiu daqui (duplicata — vive só em Bloco 3.3).
+// "Padronização do processo" isolada foi absorvida por 6.3.3 (capacidade_padrao_lotes).
+// Requisitos de qualidade perderam licença sanitária/ambiental/selo (duplicata — vivem no Bloco 1).
+export interface Bloco6Processos {
   cadeia_principal: string
   cadeias_secundarias: string
   produtos: LinhaTabela[]   // unidade/volume/capacidade/preco/sazonalidade
@@ -135,32 +141,30 @@ export interface Secao07Producao {
   meses_safra: string
   etapas_processo: string
   gargalos_perdas: string
-  padronizacao_qualidade: Escala0a4
-  capacidade_planejar_demanda: Escala0a4
-}
-
-// ── Seção 8 — Infraestrutura, equipamentos e beneficiamento ───────────────────
-export interface Secao08Infraestrutura {
+  perdas_pos_colheita_baseline: string   // qtd perdida/qtd produzida/unidade/período/% + fonte e método
+  perdas_causas_produtos: string
   espaco_producao: 'proprio' | 'cedido' | 'alugado' | 'compartilhado' | 'domiciliar' | 'nao_possui' | ''
   condicoes_area: string
   ambientes: LinhaTabela[]     // existe/condição/capacidade/adequação × 8 ambientes
   equipamentos: LinhaTabela[]  // qtd existente/estado/qtd necessária/finalidade
   manutencao_preventiva: 'sim_programada' | 'somente_corretiva' | 'nao' | 'na' | ''
-  riscos_seguranca_epis: string
   adequacoes_prioritarias: string
-}
-
-// ── Seção 9 — Qualidade, regularização, embalagem e rastreabilidade ───────────
-export interface Secao09Qualidade {
-  requisitos: LinhaTabela[]   // situação/necessidade × 11 requisitos
-  capacidade_padrao_lotes: Escala0a4
-  rastreabilidade_origem_comprador: Escala0a4
+  requisitos: LinhaTabela[]   // situação/necessidade × 9 requisitos
+  certificacao_participativa_baseline: string   // unidades certificadas/elegíveis/% + período/fonte/evidência
+  rastreabilidade_documentada_baseline: string  // unidades/elegíveis/% + sistema/registro utilizado
+  producao_rastreavel_baseline: string          // volume rastreável/total/% + unidade de medida
   produtos_urgencia_regularizacao: string
+  capacidade_padrao_lotes: Escala0a4
+  capacidade_planejar_demanda: Escala0a4
+  rastreabilidade_origem_comprador: Escala0a4
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
 // ── Seção 10 — Comercialização, clientes e acesso a mercados ──────────────────
-export interface Secao10Comercializacao {
-  canais: LinhaTabela[]   // usa/%vendas/valor/desafio × 10 canais
+// ── Bloco 5 — Gestão Comercial ─────────────────────────────────────────────
+export interface Bloco5Comercial {
+  canais: LinhaTabela[]   // usa/%vendas/valor/desafio × 11 canais
   principais_clientes: string
   catalogo_tabela_precos: 'ambos' | 'somente_catalogo' | 'somente_tabela' | 'nenhum' | ''
   emite_nf: 'sempre' | 'quando_solicitado' | 'nao' | 'na' | ''
@@ -168,6 +172,8 @@ export interface Secao10Comercializacao {
   barreiras_paa_pnae: string
   metas_comerciais_12meses: string
   maturidade_comercial: Escala0a4
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
 // ── Seção 11 — Logística, armazenamento e intercooperação ─────────────────────
@@ -245,11 +251,9 @@ export interface RespostasDiagnostico {
   bloco1?: Bloco1Documentacao
   bloco2?: Bloco2Governanca
   bloco3?: Bloco3Pessoas
-  secao06?: Secao06Financeiro
-  secao07?: Secao07Producao
-  secao08?: Secao08Infraestrutura
-  secao09?: Secao09Qualidade
-  secao10?: Secao10Comercializacao
+  bloco4?: Bloco4Financeiro
+  bloco5?: Bloco5Comercial
+  bloco6?: Bloco6Processos
   secao11?: Secao11Logistica
   secao12?: Secao12Tecnologia
   secao13?: Secao13Sustentabilidade

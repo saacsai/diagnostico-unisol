@@ -5,11 +5,9 @@ import { SecaoParteBBeneficiarios } from '../secoes/SecaoParteBBeneficiarios'
 import { SecaoBloco1Documentacao } from '../secoes/SecaoBloco1Documentacao'
 import { SecaoBloco2Governanca } from '../secoes/SecaoBloco2Governanca'
 import { SecaoBloco3Pessoas } from '../secoes/SecaoBloco3Pessoas'
-import { Secao06Financeiro } from '../secoes/Secao06Financeiro'
-import { Secao07Producao } from '../secoes/Secao07Producao'
-import { Secao08Infraestrutura } from '../secoes/Secao08Infraestrutura'
-import { Secao09Qualidade } from '../secoes/Secao09Qualidade'
-import { Secao10Comercializacao } from '../secoes/Secao10Comercializacao'
+import { SecaoBloco4Financeiro } from '../secoes/SecaoBloco4Financeiro'
+import { SecaoBloco6Processos } from '../secoes/SecaoBloco6Processos'
+import { SecaoBloco5Comercial } from '../secoes/SecaoBloco5Comercial'
 import { Secao11Logistica } from '../secoes/Secao11Logistica'
 import { Secao12Tecnologia } from '../secoes/Secao12Tecnologia'
 import { Secao13Sustentabilidade } from '../secoes/Secao13Sustentabilidade'
@@ -44,11 +42,9 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'bloco1': return <SecaoBloco1Documentacao dados={r as never} onChange={onR} />
     case 'bloco2': return <SecaoBloco2Governanca dados={r as never} onChange={onR} />
     case 'bloco3': return <SecaoBloco3Pessoas dados={r as never} onChange={onR} />
-    case 'secao06': return <Secao06Financeiro dados={r as never} onChange={onR} />
-    case 'secao07': return <Secao07Producao dados={r as never} onChange={onR} />
-    case 'secao08': return <Secao08Infraestrutura dados={r as never} onChange={onR} />
-    case 'secao09': return <Secao09Qualidade dados={r as never} onChange={onR} />
-    case 'secao10': return <Secao10Comercializacao dados={r as never} onChange={onR} />
+    case 'bloco4': return <SecaoBloco4Financeiro dados={r as never} onChange={onR} />
+    case 'bloco6': return <SecaoBloco6Processos dados={r as never} onChange={onR} />
+    case 'bloco5': return <SecaoBloco5Comercial dados={r as never} onChange={onR} />
     case 'secao11': return <Secao11Logistica dados={r as never} onChange={onR} />
     case 'secao12': return <Secao12Tecnologia dados={r as never} onChange={onR} />
     case 'secao13': return <Secao13Sustentabilidade dados={r as never} onChange={onR} />
