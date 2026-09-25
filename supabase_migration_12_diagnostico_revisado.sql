@@ -9,7 +9,6 @@
 -- ── Bloco 0 — Identificação e Territorialidade ────────────────────────────────
 alter table empreendimentos add column if not exists coordenadas text;
 alter table empreendimentos add column if not exists cadeia_produtiva_territorial text;
-alter table empreendimentos add column if not exists cadeia_produtiva_justificativa text;
 alter table empreendimentos add column if not exists origem_necessidades text;
 alter table empreendimentos add column if not exists missao text;
 alter table empreendimentos add column if not exists reconhece_economia_solidaria text;

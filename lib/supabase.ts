@@ -176,7 +176,6 @@ export interface Empreendimento {
   unisol_estadual_id: string | null
   bsr_referencia: string | null
   cadeia_produtiva_territorial: string | null
-  cadeia_produtiva_justificativa: string | null
   origem_necessidades: string | null
   missao: string | null
   reconhece_economia_solidaria: ReconheceEconomiaSolidaria | null
