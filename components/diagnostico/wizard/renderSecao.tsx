@@ -8,10 +8,9 @@ import { SecaoBloco3Pessoas } from '../secoes/SecaoBloco3Pessoas'
 import { SecaoBloco4Financeiro } from '../secoes/SecaoBloco4Financeiro'
 import { SecaoBloco6Processos } from '../secoes/SecaoBloco6Processos'
 import { SecaoBloco5Comercial } from '../secoes/SecaoBloco5Comercial'
-import { Secao11Logistica } from '../secoes/Secao11Logistica'
-import { Secao12Tecnologia } from '../secoes/Secao12Tecnologia'
-import { Secao13Sustentabilidade } from '../secoes/Secao13Sustentabilidade'
-import { Secao16Parcerias } from '../secoes/Secao16Parcerias'
+import { SecaoBloco9Adaptacao } from '../secoes/SecaoBloco9Adaptacao'
+import { SecaoBloco7Socioambiental } from '../secoes/SecaoBloco7Socioambiental'
+import { SecaoBloco8Demandas } from '../secoes/SecaoBloco8Demandas'
 import { Secao17Analise } from '../secoes/Secao17Analise'
 import { Secao18PlanoAcao } from '../secoes/Secao18PlanoAcao'
 import { AnexoAEvidencias } from '../secoes/AnexoAEvidencias'
@@ -45,10 +44,9 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'bloco4': return <SecaoBloco4Financeiro dados={r as never} onChange={onR} />
     case 'bloco6': return <SecaoBloco6Processos dados={r as never} onChange={onR} />
     case 'bloco5': return <SecaoBloco5Comercial dados={r as never} onChange={onR} />
-    case 'secao11': return <Secao11Logistica dados={r as never} onChange={onR} />
-    case 'secao12': return <Secao12Tecnologia dados={r as never} onChange={onR} />
-    case 'secao13': return <Secao13Sustentabilidade dados={r as never} onChange={onR} />
-    case 'secao16': return <Secao16Parcerias dados={r as never} onChange={onR} />
+    case 'bloco7': return <SecaoBloco7Socioambiental dados={r as never} onChange={onR} />
+    case 'bloco8': return <SecaoBloco8Demandas dados={r as never} onChange={onR} />
+    case 'bloco9': return <SecaoBloco9Adaptacao dados={r as never} onChange={onR} />
     case 'secao17': return <Secao17Analise dados={a as never} onChange={onA} />
     case 'secao18': return <Secao18PlanoAcao dados={a as never} onChange={onA} />
     case 'anexoA':  return <AnexoAEvidencias diagnosticoId={ctx.diagnosticoId} />

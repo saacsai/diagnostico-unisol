@@ -177,47 +177,56 @@ export interface Bloco5Comercial {
 }
 
 // ── Seção 11 — Logística, armazenamento e intercooperação ─────────────────────
-export interface Secao11Logistica {
+// ── Bloco 9 — Adaptação ao Meio e Relações Institucionais (funde Logística + Tecnologia + Parcerias) ──
+// "Perdas pós-colheita" saiu (duplicata — vive no Bloco 6.1.8). "Necessidades de
+// capacitação digital" saiu (duplicata — vive no Bloco 8.4).
+export interface Bloco9Adaptacao {
   transporte: 'proprio' | 'alugado' | 'terceirizado' | 'parceiro' | 'comprador_retira' | 'nao_possui' | ''
   rotas_frequencia_custo: string
   cadeia_fria: 'sim_possui' | 'sim_nao_possui' | 'nao' | ''
   capacidade_armazenamento: string
-  perdas_pos_colheita: string
   interesse_bsr_cnd: string[]   // multi-select: logistica/armazenamento/beneficiamento/comercializacao/formacao/assessoria/todos
   produtos_circuitos_inter_regionais: string
   insumos_compartilhaveis: string
   parcerias_existentes: string
   prontidao_logistica_compartilhada: Escala0a4
-}
-
-// ── Seção 12 — Tecnologia, comunicação e inserção digital ─────────────────────
-export interface Secao12Tecnologia {
   recursos: LinhaTabela[]   // situação/qtd/necessidade × 8 recursos
+  interesse_plataforma_ecouni: 'sim' | 'talvez' | 'nao' | 'precisa_apoio' | ''
+  maturidade_digital: Escala0a4
   frequencia_redes_sociais: 'diaria' | 'semanal' | 'mensal' | 'raramente' | 'nao_usa' | ''
   responsavel_comunicacao: string
   materiais_existentes: string
-  interesse_plataforma_ecouni: 'sim' | 'talvez' | 'nao' | 'precisa_apoio' | ''
-  necessidades_capacitacao_digital: string
-  maturidade_digital: Escala0a4
-}
-
-// ── Seção 13 — Sustentabilidade, agroecologia e sociobiodiversidade ───────────
-export interface Secao13Sustentabilidade {
-  praticas: LinhaTabela[]   // não/parcial/sim/descrição × 10 práticas
-  pct_unidades_agroecologicas: string
-  pct_perdas_residuos: string
-  riscos_climaticos: string
-  tecnologias_sociais: string
-  metas_ambientais_12meses: string
-}
-
-// ── Seção 16 — Parcerias, políticas públicas e incidência ─────────────────────
-export interface Secao16Parcerias {
   parceiros: LinhaTabela[]   // tipo apoio/situação/próximo passo × 7 tipos
   politicas_acessadas: string
   demandas_articulacao: string
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
+// ── Seção 13 — Sustentabilidade, agroecologia e sociobiodiversidade ───────────
+// ── Bloco 7 — Gestão Socioambiental ─────────────────────────────────────────
+// "% unidades agroecológicas" saiu (não consta no documento revisado); "% perdas e
+// resíduos" virou linha de base estruturada (7.4).
+export interface Bloco7Socioambiental {
+  praticas: LinhaTabela[]   // não/parcial/sim/descrição × 10 práticas
+  riscos_climaticos: string
+  tecnologias_sociais: string
+  metas_ambientais_12meses: string
+  residuos_baseline: string   // qtd gerada/qtd total produzida/unidade/período/% + destinação e fonte
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
+}
+
+// ── Bloco 8 — Demandas e Potencialidades (NOVO) ────────────────────────────
+export interface Bloco8Demandas {
+  potencialidades_estrategicas: string   // 8.1 — três potencialidades estratégicas
+  gargalos_prioritarios: string          // 8.2 — três gargalos prioritários
+  riscos_participacao: string            // 8.3
+  necessidades_capacitacao_digital: string   // 8.4
+  plano_acoes: LinhaTabela[]             // 8.5 — prioridade/ação/responsável/prazo/apoio/indicador × até 5
+}
+
+// ── Seção 16 — Parcerias, políticas públicas e incidência ─────────────────────
 // ── Seção 17 — Análise de maturidade e priorização técnica (TÉCNICO) ──────────
 export interface Secao17Analise {
   dimensoes: LinhaTabela[]   // nota 0-4/evidência/prioridade × 13 dimensões
@@ -254,10 +263,9 @@ export interface RespostasDiagnostico {
   bloco4?: Bloco4Financeiro
   bloco5?: Bloco5Comercial
   bloco6?: Bloco6Processos
-  secao11?: Secao11Logistica
-  secao12?: Secao12Tecnologia
-  secao13?: Secao13Sustentabilidade
-  secao16?: Secao16Parcerias
+  bloco7?: Bloco7Socioambiental
+  bloco8?: Bloco8Demandas
+  bloco9?: Bloco9Adaptacao
 }
 
 export interface AnaliseTecnicaDiagnostico {
