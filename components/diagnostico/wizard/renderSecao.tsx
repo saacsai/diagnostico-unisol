@@ -1,9 +1,10 @@
 import { Empreendimento } from '@/lib/supabase'
 import { Secao02Identificacao } from '../secoes/Secao02Identificacao'
 import { Secao01Controle } from '../secoes/Secao01Controle'
-import { Secao03Composicao } from '../secoes/Secao03Composicao'
-import { Secao04Historico } from '../secoes/Secao04Historico'
-import { Secao05Governanca } from '../secoes/Secao05Governanca'
+import { SecaoParteBBeneficiarios } from '../secoes/SecaoParteBBeneficiarios'
+import { SecaoBloco1Documentacao } from '../secoes/SecaoBloco1Documentacao'
+import { SecaoBloco2Governanca } from '../secoes/SecaoBloco2Governanca'
+import { SecaoBloco3Pessoas } from '../secoes/SecaoBloco3Pessoas'
 import { Secao06Financeiro } from '../secoes/Secao06Financeiro'
 import { Secao07Producao } from '../secoes/Secao07Producao'
 import { Secao08Infraestrutura } from '../secoes/Secao08Infraestrutura'
@@ -12,8 +13,6 @@ import { Secao10Comercializacao } from '../secoes/Secao10Comercializacao'
 import { Secao11Logistica } from '../secoes/Secao11Logistica'
 import { Secao12Tecnologia } from '../secoes/Secao12Tecnologia'
 import { Secao13Sustentabilidade } from '../secoes/Secao13Sustentabilidade'
-import { Secao14Formacao } from '../secoes/Secao14Formacao'
-import { Secao15Renda } from '../secoes/Secao15Renda'
 import { Secao16Parcerias } from '../secoes/Secao16Parcerias'
 import { Secao17Analise } from '../secoes/Secao17Analise'
 import { Secao18PlanoAcao } from '../secoes/Secao18PlanoAcao'
@@ -41,9 +40,10 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'secao02': return ctx.empreendimento
       ? <Secao02Identificacao empreendimento={ctx.empreendimento} onChange={ctx.setEmpreendimento} />
       : <p className="text-sm text-gray-400">Empreendimento não carregado.</p>
-    case 'secao03': return <Secao03Composicao dados={r as never} onChange={onR} />
-    case 'secao04': return <Secao04Historico dados={r as never} onChange={onR} />
-    case 'secao05': return <Secao05Governanca dados={r as never} onChange={onR} />
+    case 'parteB': return <SecaoParteBBeneficiarios dados={r as never} onChange={onR} />
+    case 'bloco1': return <SecaoBloco1Documentacao dados={r as never} onChange={onR} />
+    case 'bloco2': return <SecaoBloco2Governanca dados={r as never} onChange={onR} />
+    case 'bloco3': return <SecaoBloco3Pessoas dados={r as never} onChange={onR} />
     case 'secao06': return <Secao06Financeiro dados={r as never} onChange={onR} />
     case 'secao07': return <Secao07Producao dados={r as never} onChange={onR} />
     case 'secao08': return <Secao08Infraestrutura dados={r as never} onChange={onR} />
@@ -52,8 +52,6 @@ export function renderSecao(id: string, ctx: SecaoContext) {
     case 'secao11': return <Secao11Logistica dados={r as never} onChange={onR} />
     case 'secao12': return <Secao12Tecnologia dados={r as never} onChange={onR} />
     case 'secao13': return <Secao13Sustentabilidade dados={r as never} onChange={onR} />
-    case 'secao14': return <Secao14Formacao dados={r as never} onChange={onR} />
-    case 'secao15': return <Secao15Renda dados={r as never} onChange={onR} />
     case 'secao16': return <Secao16Parcerias dados={r as never} onChange={onR} />
     case 'secao17': return <Secao17Analise dados={a as never} onChange={onA} />
     case 'secao18': return <Secao18PlanoAcao dados={a as never} onChange={onA} />

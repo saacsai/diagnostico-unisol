@@ -33,29 +33,52 @@ export interface Secao01Controle {
 // ── Seção 2 — NÃO fica em `respostas` — grava direto em `empreendimentos` ────
 // (mantido aqui só como referência do mapeamento de campos, ver EmpreendimentoForm)
 
-// ── Seção 3 — Composição social e perfil das pessoas ──────────────────────────
-export interface Secao03Composicao {
+// ── Parte B — Beneficiários (B.1 composição, B.2 instâncias, B.3 renda/
+// trabalho/impacto, B.4 formação/lideranças/comitês) ──────────────────────────
+// Fusão de 2026-09: a versão anterior tinha Formação e Renda como blocos do
+// EMPREENDIMENTO (seções 14 e 15) — o documento revisado deixa claro que são
+// dados de BENEFICIÁRIO, não do empreendimento em si, e junta tudo em Parte B.
+export interface ParteBBeneficiarios {
+  // B.1
   indicadores_vinculo: LinhaTabela[]   // total/mulheres/homens/nao_binarias/nao_informado × 7 categorias
   faixas_grupo: LinhaTabela[]          // quantidade+observação × 10 faixas
   politica_inclusao: SimNaoParcial | 'formalizada' | 'em_construcao' | ''
   participacao_decisoes: string
+  // B.2
   instancias: LinhaTabela[]            // total/mulheres/jovens/periodicidade × direção/conselho/outras
+  // B.3 — renda, trabalho e impacto socioeconômico (indicador 2.9.3 do Plano de Trabalho)
+  renda_indicadores: LinhaTabela[]     // valor+unidade × 7 indicadores linha de base
+  renda_metodo_estimativa: string
+  renda_beneficios_nao_monetarios: string
+  renda_mudancas_esperadas: string
+  // B.4 — formação, lideranças e comitês de mulheres e juventude (indicador 2.9.2)
+  formacao_indicador: LinhaTabela[]    // total/mulheres/jovens × 2 linhas (formação própria / BSR-EcoUni)
+  interesse_comite_mulheres_juventude: 'sim' | 'nao' | 'talvez' | 'ja_participa' | ''
+  liderancas_indicadas: string
+  formacao_temas: LinhaTabela[]        // necessidade(0-4)/quem participa/modalidade/resultado × 13 temas
+  formacao_condicoes_online: 'boas' | 'parciais' | 'insuficientes' | 'sem_acesso' | ''
+  formacao_dias_horarios_apoios: string
+  formacao_realizadas_2anos: string
+  formacao_saberes_compartilhar: string
 }
 
-// ── Seção 4 — Histórico, identidade e atuação territorial ─────────────────────
-export interface Secao04Historico {
-  origem_necessidades: string
-  missao: string
-  conquistas_3anos: string
-  dificuldades_3anos: string
-  relacoes_comunidade: string
-  reconhece_economia_solidaria: 'sim' | 'parcialmente' | 'nao' | 'nao_sabe' | ''
-  principios_praticados: string
+// ── Bloco 1 — Documentação e Regularidade ──────────────────────────────────────
+// Separado da antiga Seção 5 (Governança) — ganha régua de maturidade própria e
+// 3 itens novos (licença sanitária do produto, regularidade ambiental, selo de
+// inspeção SIM/SIE/SIF/SISBI), 13 documentos no total (eram 10).
+export interface Bloco1Documentacao {
+  documentos: LinhaTabela[]   // situação/validade/pendência × 13 documentos
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
-// ── Seção 5 — Governança, autogestão e regularidade institucional ─────────────
-export interface Secao05Governanca {
-  documentos: LinhaTabela[]   // situação/validade/pendência × 10 documentos
+// ── Bloco 2 — Gestão e Governança ──────────────────────────────────────────────
+// Antiga Seção 5 sem a tabela de documentos (virou Bloco 1) e sem o interesse no
+// Comitê de Mulheres/Juventude (duplicado — já vive em Parte B.4.1). Ganha os
+// campos que eram da antiga Seção 4 (conquistas/dificuldades/relações/
+// princípios — origem/missão/reconhecimento economia solidária foram pro
+// Bloco 0) e régua de maturidade própria.
+export interface Bloco2Governanca {
   participacao_quadro_social: Escala0a4
   regularidade_assembleias: Escala0a4
   transparencia_prestacao_contas: Escala0a4
@@ -64,8 +87,26 @@ export interface Secao05Governanca {
   gestao_conflitos: Escala0a4
   frequencia_reunioes: string
   decisoes_ultimo_ano: string
-  interesse_comite_mulheres_juventude: 'sim' | 'nao' | 'talvez' | 'ja_participa' | ''
+  conquistas_3anos: string
+  dificuldades_3anos: string
+  relacoes_comunidade: string
+  principios_praticados: string
   necessidades_juridicas: string
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
+}
+
+// ── Bloco 3 — Gestão de Pessoas (NOVO, não existia na versão anterior) ────────
+// Foco nas práticas internas de gestão de pessoas — dados quantitativos do
+// perfil das pessoas vinculadas ficam na Parte B.
+export interface Bloco3Pessoas {
+  criterios_formalizados: 'sim' | 'parcialmente' | 'nao' | 'na' | ''
+  separa_financas_pessoais: 'sempre' | 'parcialmente' | 'nao' | ''
+  riscos_seguranca_epis: string
+  necessidade_mao_obra_12meses: string
+  maturidade_gestao_pessoas: Escala0a4
+  regua_classificacao: Escala0a4
+  regua_evidencia: string
 }
 
 // ── Seção 6 — Gestão administrativa, financeira e contábil ────────────────────
@@ -164,23 +205,6 @@ export interface Secao13Sustentabilidade {
   metas_ambientais_12meses: string
 }
 
-// ── Seção 14 — Formação, assistência técnica e capacidades ────────────────────
-export interface Secao14Formacao {
-  temas: LinhaTabela[]   // necessidade(0-4)/quem participa/modalidade/resultado × 12 temas
-  formacoes_realizadas: string
-  saberes_compartilhar: string
-  condicoes_formacao_online: 'boas' | 'parciais' | 'insuficientes' | 'sem_acesso' | ''
-  dias_horarios_apoios: string
-}
-
-// ── Seção 15 — Renda, trabalho e impacto socioeconômico ───────────────────────
-export interface Secao15Renda {
-  indicadores: LinhaTabela[]   // valor+unidade × 7 indicadores linha de base
-  metodo_estimativa_renda: string
-  beneficios_nao_monetarios: string
-  mudancas_esperadas: string
-}
-
 // ── Seção 16 — Parcerias, políticas públicas e incidência ─────────────────────
 export interface Secao16Parcerias {
   parceiros: LinhaTabela[]   // tipo apoio/situação/próximo passo × 7 tipos
@@ -217,9 +241,10 @@ export interface AnexoBSintese {
 
 export interface RespostasDiagnostico {
   secao01?: Secao01Controle
-  secao03?: Secao03Composicao
-  secao04?: Secao04Historico
-  secao05?: Secao05Governanca
+  parteB?: ParteBBeneficiarios
+  bloco1?: Bloco1Documentacao
+  bloco2?: Bloco2Governanca
+  bloco3?: Bloco3Pessoas
   secao06?: Secao06Financeiro
   secao07?: Secao07Producao
   secao08?: Secao08Infraestrutura
@@ -228,8 +253,6 @@ export interface RespostasDiagnostico {
   secao11?: Secao11Logistica
   secao12?: Secao12Tecnologia
   secao13?: Secao13Sustentabilidade
-  secao14?: Secao14Formacao
-  secao15?: Secao15Renda
   secao16?: Secao16Parcerias
 }
 

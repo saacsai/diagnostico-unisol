@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { Escala0a4 } from './diagnostico/schema'
 
 const url  = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -42,6 +43,15 @@ export type FormaOrganizativa =
   | 'outra'
 export type Zona              = 'urbana' | 'rural' | 'transicao'
 export type VinculacaoUnisol  = 'filiado' | 'em_processo' | 'nao_filiado' | 'nao_sabe'
+export type TerritorioTipo =
+  | 'assentamento'
+  | 'quilombo'
+  | 'territorio_indigena'
+  | 'comunidade_ribeirinha'
+  | 'comunidade_extrativista'
+  | 'periferia_urbana'
+  | 'outro'
+export type ReconheceEconomiaSolidaria = 'sim' | 'parcialmente' | 'nao' | 'nao_sabe'
 export type StatusEmpProjeto  = 'ativo' | 'inativo' | 'encerrado'
 export type StatusEstadual    = 'formalizada' | 'em_constituicao'
 export type StatusProjeto     = 'em_concorrencia' | 'em_fase_aprovacao' | 'em_execucao' | 'encerrado'
@@ -151,7 +161,8 @@ export interface Empreendimento {
   uf: string | null
   municipio: string | null
   zona: Zona | null
-  territorio_tipo: string | null
+  coordenadas: string | null
+  territorio_tipo: TerritorioTipo | null
   area_abrangencia: string | null
   telefones: string | null
   email: string | null
@@ -164,6 +175,13 @@ export interface Empreendimento {
   vinculacao_unisol: VinculacaoUnisol | null
   unisol_estadual_id: string | null
   bsr_referencia: string | null
+  cadeia_produtiva_territorial: string | null
+  cadeia_produtiva_justificativa: string | null
+  origem_necessidades: string | null
+  missao: string | null
+  reconhece_economia_solidaria: ReconheceEconomiaSolidaria | null
+  bloco0_regua_classificacao: Escala0a4
+  bloco0_regua_evidencia: string | null
   created_at: string
   updated_at: string
 }
