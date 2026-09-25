@@ -6,7 +6,7 @@ Reescrita total do instrumento a partir de `Diagnostico_revisado.docx` (comparad
 com a implementação anterior, 18 seções lineares). Sem dado real em produção ainda (confirmado
 com o Luciano) — restruturação livre, sem migração de resposta existente. Feito de ponta a ponta
 numa sessão só, a pedido do Luciano ("não deixar passar nada em branco, pode executar todos em
-produção"), sem pausa pra revisão por bloco — **agora aguardando validação da coordenadora**.
+produção"), sem pausa pra revisão por bloco.
 
 **Nova estrutura**: Parte A (controle/consentimento, com Marco 0/data de corte e convenção
 NI/NA/NV) → Bloco 0 (identificação/territorialidade, grava em `empreendimentos`) → Parte B
@@ -23,14 +23,13 @@ Cada Bloco 0-9 ganhou "Régua de Maturidade do Bloco" de fechamento (classifica�
 evidência) — usa o `comEvidencia` do `EscalaMaturidade0a4` que já existia. Ids/componentes
 renomeados pra consistência (`secao01`→`parteA`, `secao02`→`bloco0`, arquivos `SecaoBlocoN*`).
 Migration `supabase_migration_12_diagnostico_revisado.sql` cobre as colunas novas de
-`empreendimentos` (Bloco 0) — **ainda não rodada no Supabase**, precisa o Luciano colar no SQL
-Editor a partir do arquivo local. Todos os outros blocos gravam em JSONB (`respostas`/
-`analise_tecnica`), sem coluna nova.
+`empreendimentos` (Bloco 0) — **rodada no Supabase em 2026-09-25**. Todos os outros blocos
+gravam em JSONB (`respostas`/`analise_tecnica`), sem coluna nova.
 
-`npx tsc --noEmit` e `npm run build` passaram limpos a cada lote; 8 commits, todos com push.
+`npx tsc --noEmit` e `npm run build` passaram limpos a cada lote; 9 commits, todos com push.
+Instrumento reestruturado está **funcional de ponta a ponta em produção**.
 
-**Próximo passo**: (1) rodar a migration 12 no Supabase; (2) coordenadora valida o instrumento
-reestruturado antes de ir a campo.
+**Próximo passo**: coordenadora valida o instrumento reestruturado antes de ir a campo.
 
 ## Dashboard pós-login + atribuição técnico×Filiada×Projeto (2026-09-08)
 
