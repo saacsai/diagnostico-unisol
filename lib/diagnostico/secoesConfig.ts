@@ -23,7 +23,7 @@ export const SECOES: SecaoConfig[] = [
   { id: 'bloco9', numero: 'Bloco 9', titulo: 'Adaptação ao meio e relações institucionais', perfil: 'aplicador', destino: 'respostas' },
   { id: 'bloco10', numero: 'Bloco 10', titulo: 'Módulos complementares por segmento', perfil: 'tecnico', destino: 'analise_tecnica' },
   { id: 'bloco11', numero: 'Bloco 11', titulo: 'Régua de maturidade (técnico)', perfil: 'tecnico', destino: 'analise_tecnica' },
-  { id: 'secao18', numero: '18', titulo: 'Plano de encaminhamentos',          perfil: 'tecnico',   destino: 'analise_tecnica' },
+  { id: 'bloco12', numero: 'Bloco 12', titulo: 'Devolutiva e encaminhamentos', perfil: 'tecnico',  destino: 'analise_tecnica' },
   { id: 'anexoA',  numero: 'A',  titulo: 'Anexo A — Evidências',              perfil: 'tecnico',   destino: 'analise_tecnica' },
   { id: 'anexoB',  numero: 'B',  titulo: 'Anexo B — Quadro-síntese',          perfil: 'tecnico',   destino: 'analise_tecnica' },
 ]

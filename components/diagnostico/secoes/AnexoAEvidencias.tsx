@@ -15,6 +15,7 @@ const ITENS = [
   { chave: 'fotos', label: 'Fotos autorizadas da estrutura/produtos' },
   { chave: 'comprovantes_paa_pnae', label: 'Comprovantes de PAA/PNAE/mercados' },
   { chave: 'certificacoes', label: 'Certificações/rastreabilidade' },
+  { chave: 'outros', label: 'Outros' },
 ]
 
 // Anexo A agora é upload real (Storage), não mais um checklist de texto solto — cada item

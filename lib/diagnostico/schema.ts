@@ -245,19 +245,26 @@ export interface Bloco11Regua {
   prontidao_ecouni: 'imediata' | 'com_apoio_previo' | 'condicionada_regularizacao' | 'reavaliar' | ''
 }
 
-// ── Seção 18 — Plano inicial de encaminhamentos (TÉCNICO) ─────────────────────
-export interface Secao18PlanoAcao {
-  linhas: LinhaTabela[]   // prioridade/ação/responsável/prazo/apoio/indicador × até 10
+// ── Bloco 12 — Devolutiva e Encaminhamentos (TÉCNICO) ───────────────────────
+// A tabela de ações priorizadas saiu daqui — agora vive no Bloco 8.5.
+export interface Bloco12Devolutiva {
+  forma_devolutiva: string
+  responsavel_data_devolutiva: string
+  compromissos_empreendimento: string
+  compromissos_bsr_ecouni: string
 }
 
 // ── Anexo A — Checklist de evidências ──────────────────────────────────────────
 export interface AnexoAEvidencias {
-  itens: LinhaTabela[]   // anexado/nao_existe/pendente + observação × 11 itens
+  itens: LinhaTabela[]   // anexado/nao_existe/pendente + observação × 12 itens
 }
 
 // ── Anexo B — Quadro-síntese pra sistematização e MAP ──────────────────────────
+// Regra de comparação Marco 0 → Marco 1 (documento revisado): registrar mesma unidade,
+// período de apuração, fonte e denominador. Variação absoluta = Marco 1 − Marco 0;
+// variação percentual = (Marco 1 − Marco 0) ÷ Marco 0 × 100, somente se Marco 0 > 0.
 export interface AnexoBSintese {
-  indicadores: LinhaTabela[]   // linha de base/meta/fonte/periodicidade × 14 indicadores-chave
+  indicadores: LinhaTabela[]   // linha de base (Marco 0)/meta/fonte × 18 indicadores-chave
 }
 
 export interface RespostasDiagnostico {
@@ -277,7 +284,7 @@ export interface RespostasDiagnostico {
 export interface AnaliseTecnicaDiagnostico {
   bloco10?: Bloco10Modulos
   bloco11?: Bloco11Regua
-  secao18?: Secao18PlanoAcao
+  bloco12?: Bloco12Devolutiva
   anexoA?: AnexoAEvidencias
   anexoB?: AnexoBSintese
 }
