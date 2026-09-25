@@ -11,13 +11,21 @@ export interface LinhaTabela {
   [coluna: string]: string | number | null
 }
 
-// ── Seção 1 — Controle da aplicação e consentimento ──────────────────────────
+// ── Parte A — Responsável pela aplicação (controle e consentimento) ──────────
+// Revisão do documento (2026-09): A.1 código único, A.3 BSR responsável (antes
+// só dentro do texto livre de A.2), A.7 datas de aplicação/corte do Marco 0 —
+// campos novos. A.7.1/A.7.2 são notas de orientação impressas no formulário
+// (período de referência, convenção NI/NA/NV), não campos de resposta.
 export interface Secao01Controle {
+  codigo_empreendimento: string
   aplicador_nome: string
   aplicador_instituicao: string
+  aplicador_bsr: string
   participantes_entrevista: string
   modalidade: 'presencial' | 'online' | 'hibrida' | ''
   local_duracao: string
+  data_aplicacao: string
+  data_corte_marco0: string
   consentimento_dados: 'sim' | 'nao' | 'sim_exceto_pessoais' | ''
   consentimento_imagem: 'sim' | 'nao' | 'somente_sem_identificacao' | ''
 }

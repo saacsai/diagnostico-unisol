@@ -9,7 +9,7 @@ export interface SecaoConfig {
 }
 
 export const SECOES: SecaoConfig[] = [
-  { id: 'secao01', numero: '1',  titulo: 'Controle da aplicação',              perfil: 'aplicador', destino: 'respostas' },
+  { id: 'secao01', numero: 'Parte A', titulo: 'Controle da aplicação',         perfil: 'aplicador', destino: 'respostas' },
   { id: 'secao02', numero: '2',  titulo: 'Identificação do empreendimento',    perfil: 'aplicador', destino: 'empreendimento' },
   { id: 'secao03', numero: '3',  titulo: 'Composição social e perfil',         perfil: 'aplicador', destino: 'respostas' },
   { id: 'secao04', numero: '4',  titulo: 'Histórico e identidade',             perfil: 'aplicador', destino: 'respostas' },
