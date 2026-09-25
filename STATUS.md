@@ -1,5 +1,37 @@
 # Status — Sistema UNISOL Brasil
 
+## Diagnóstico revisado: reestruturação completa Parte A/B + Blocos 0-12 + Anexo A/B (2026-09-25)
+
+Reescrita total do instrumento a partir de `Diagnostico_revisado.docx` (comparado seção a seção
+com a implementação anterior, 18 seções lineares). Sem dado real em produção ainda (confirmado
+com o Luciano) — restruturação livre, sem migração de resposta existente. Feito de ponta a ponta
+numa sessão só, a pedido do Luciano ("não deixar passar nada em branco, pode executar todos em
+produção"), sem pausa pra revisão por bloco — **agora aguardando validação da coordenadora**.
+
+**Nova estrutura**: Parte A (controle/consentimento, com Marco 0/data de corte e convenção
+NI/NA/NV) → Bloco 0 (identificação/territorialidade, grava em `empreendimentos`) → Parte B
+(beneficiários — funde as antigas Composição+Formação+Renda) → Blocos 1-9 (Documentação,
+Governança, Pessoas, Financeiro, Comercial, Processos Produtivos [funde Produção+Infra+
+Qualidade], Socioambiental, Demandas e Potencialidades [novo], Adaptação ao Meio [funde
+Logística+Tecnologia+Parcerias]) → Bloco 10 (módulos complementares por segmento produtivo,
+novo, técnico) → Bloco 11 (régua de maturidade consolidada, 13→11 dimensões, pontuação máx.
+52→44, N/A agora exclui a dimensão do denominador — regra nova) → Bloco 12 (devolutiva,
+simplificado pra 4 perguntas) → Anexo A (checklist de evidências, +item "Outros") → Anexo B
+(quadro-síntese MAP, 14→18 indicadores-chave, regra de variação Marco 0→Marco 1 documentada).
+
+Cada Bloco 0-9 ganhou "Régua de Maturidade do Bloco" de fechamento (classificação 0-4/N-A +
+evidência) — usa o `comEvidencia` do `EscalaMaturidade0a4` que já existia. Ids/componentes
+renomeados pra consistência (`secao01`→`parteA`, `secao02`→`bloco0`, arquivos `SecaoBlocoN*`).
+Migration `supabase_migration_12_diagnostico_revisado.sql` cobre as colunas novas de
+`empreendimentos` (Bloco 0) — **ainda não rodada no Supabase**, precisa o Luciano colar no SQL
+Editor a partir do arquivo local. Todos os outros blocos gravam em JSONB (`respostas`/
+`analise_tecnica`), sem coluna nova.
+
+`npx tsc --noEmit` e `npm run build` passaram limpos a cada lote; 8 commits, todos com push.
+
+**Próximo passo**: (1) rodar a migration 12 no Supabase; (2) coordenadora valida o instrumento
+reestruturado antes de ir a campo.
+
 ## Dashboard pós-login + atribuição técnico×Filiada×Projeto (2026-09-08)
 
 Migration 11: `usuarios.tecnico_id` (liga o login ao cadastro de talentos — não existia antes)
