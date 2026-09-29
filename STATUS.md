@@ -1,5 +1,53 @@
 # Status — Sistema UNISOL Brasil
 
+## Elucubração parte 2: o "motor" de relato via WhatsApp, em parceria com o 168 (2026-09-29)
+
+Continuação direta da elucubração acima (mesmo dia). Luciano confessou que o 168 (produto pessoal
+dele, ver [[project_168]]) está parado há 36 dias apesar de ser "a menina dos olhos" — sinal real
+de que a forma atual (dashboard-first, sincronizado com Google Calendar) não emplacou no uso
+dele. Hipótese: 168 deveria ser um agente quase 100% WhatsApp, não um dashboard — fluxo: segunda
+de manhã planeja a semana, todo dia de manhã recebe a agenda do dia (com prerrogativa de ajustar),
+no início/fim de cada bloco recebe check-in/check-out do agente, relato de atividade especialmente
+por **áudio do WhatsApp** (fala captura contexto melhor que texto digitado). Default = quase zero
+interação (só grava); exceção (cancelamento/atraso) = interação real de realocação.
+
+**Conclusão de sequenciamento (aprovada por ele — "de acordo, pode fazer")**: esse motor
+(agenda diária + relato por voz + check-in/check-out + realocação por exceção) nasce **primeiro
+como recurso da UNISOL**, não dentro do 168. Motivo: dogfooding solo do 168 já rodou sem
+produzir uso real — validar o motor onde tem peso real (35-40 técnicos, prestação de contas de
+verdade) é mais forte que Luciano tentar sozinho de novo. Depois de provado, o motor migra pro
+168 (ele reconhece que precisará de "quase todo o 168, tirando só o propósito/Matriz T×D" — mas
+o enquadramento certo, segundo a conversa, não é "fração do 168 completo", é o MESMO motor
+aplicado a um domínio bem mais estreito: só as horas que o contrato do técnico prevê pro projeto,
+não a vida inteira de 168h).
+
+**Escopo do que o técnico da UNISOL precisa** (bem mais enxuto que o 168 completo):
+- Declarar quais dias/blocos pretende dedicar ao projeto (recorte de calendário de 1 projeto, não
+  distribuição de vida inteira — sem Matriz T×D, sem esferas Tempo/Dinheiro pessoais).
+- Receber a agenda do dia via WhatsApp, com prerrogativa de ajustar.
+- Check-in no início do bloco, check-out no fim, relato **em áudio** do que foi feito (pauta +
+  encaminhamento — ver seção anterior sobre "prova de substância vs. prova de atividade").
+- Motor de realocação ("o que cede?") só quando bate exceção (cancelamento/atraso), escopado
+  só nos blocos daquele projeto, não na vida inteira do técnico.
+- Esse relato vira ao mesmo tempo: (a) insumo bruto pra IA montar relatório de prestação de
+  contas coerente, (b) alimentação do painel de indicador/hierarquia da parte 1 desta elucubração.
+
+**Achado técnico ao investigar reaproveitamento** (verificado no código real do
+`/Users/lucianomaeda/168-dashboard`, não assumido): o WhatsApp do 168 hoje é modelo
+"conta-pareada" — cada usuário conecta o PRÓPRIO WhatsApp via QR code (`instances` table,
+`instanceName = meudia_${user.id}...`, Evolution API self-hosted em `evolution.saacs.com.br`),
+e o bot responde AOS CONTATOS DELE (triagem de inbox pessoal) — é o modelo errado pro caso de
+uso da UNISOL. UNISOL precisa do padrão mais simples já usado noutros produtos SAACS (ex:
+`lib/evolution.ts` do vaikeuvou, usado pro lembrete de check-in): **1 instância só, envia
+mensagem PRA MUITOS números diferentes** (outbound, não pareamento pessoal). Nenhuma transcrição
+de áudio existe ainda em nenhum dos dois repos — é construção nova nos dois casos.
+
+**Módulo pensado como extraível desde o nascimento** — não deve virar feature hardcoded dentro
+do schema/código específico da UNISOL, pra poder migrar pro 168 depois sem reconstrução.
+
+**Próximo passo**: plano de ação formal (fases, schema, endpoints) a ser desenhado em modo de
+planejamento antes de qualquer código.
+
 ## Elucubração conceitual: modelo institucional × montagem por projeto (2026-09-29)
 
 Conversa longa (não implementação — registro de decisões de modelo pra guiar construção futura)
