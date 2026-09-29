@@ -1,5 +1,54 @@
 # Status — Sistema UNISOL Brasil
 
+## Elucubração conceitual: modelo institucional × montagem por projeto (2026-09-29)
+
+Conversa longa (não implementação — registro de decisões de modelo pra guiar construção futura)
+sobre como o sistema deveria pensar "diagnóstico", "equipe" e "projeto" juntos, motivada pela
+constatação de que o nome "Diagnóstico" sugere evento único, mas o mecanismo de `versão` já foi
+desenhado pra reaplicação ao longo do tempo (T0→T1→T2).
+
+**Princípio organizador que fechou a discussão**: o sistema é feito de **peças institucionais
+reutilizáveis** (banco de profissionais/`tecnicos`, os ~1000 `empreendimentos`, cadastro das
+Estaduais, a geografia do Brasil) e **montagem específica por projeto** (quem participa, que
+papel assume, como o território é recortado, quem executa qual regional). Tudo que hoje parece
+"estrutura fixa" mas na real é peculiaridade de UM projeto (o arranjo SP=Sudeste/BA=Nordeste/
+RS=Sul/BRASIL=Centro-Oeste+Norte é do CooperaMais especificamente, não uma verdade institucional
+permanente) deve morar na camada de montagem, com `projeto_id`, não na camada institucional.
+
+**Decisões de modelo confirmadas nesta conversa** (nenhuma implementada ainda):
+1. **Duas frentes distintas**, não uma: financeiro/execução (Meta→Etapa→custo→horas, do
+   TransfereGov, ancorado num **contrato de trabalho real** — documento upload, mesmo padrão de
+   `documentos_institucionais`, vinculado a profissional+projeto+plano de trabalho) versus
+   medição de resultado (o Diagnóstico, T0→T10, já resolvido pelo mecanismo de versão existente).
+2. **Relatório mensal vira o motor do sistema, não subproduto burocrático**: hora não é
+   cronômetro, é alocação autodeclarada; o que sustenta a credibilidade da alocação é um relato
+   de **pauta e encaminhamento** (substância), não prova de atividade (lista de presença, foto).
+   Isso serve dois propósitos: (a) vira insumo bruto pra IA montar um relatório de prestação de
+   contas coerente e não inventado; (b) alimenta o painel de acompanhamento de resultado.
+3. **Papel do coordenador muda de auditor pra facilitador**: em vez de analisar o
+   relatório-documento depois do fato, orienta o preenchimento durante o mês — implica painel
+   vivo, não relatório retrospectivo em PDF.
+4. **Hierarquia de painel por exceção**: Nacional → Regional → Estado (UF real) → Território
+   (recorte livre do Coordenador Regional, por projeto) → Empreendimento. Cada nível precisa
+   expor dispersão/outlier, não só média — senão esconde o sinal que o painel deveria revelar.
+   Trabalho em grupo (equipe de apoio regional — comunicação/adm/contábil/jurídico — também
+   lançando relato na mesma visão) funciona como controle social adicional contra "enrolação",
+   complementar à checagem de coerência do coordenador.
+5. **Diagnóstico não se fragmenta por projeto**: mesmo empreendimento em 2 projetos concomitantes
+   (ex: CooperaMais + Terra Mesa futuro) tem uma realidade só, uma linha do tempo só — colisão
+   mecânica já resolvida pelo `max(versão)+1` existente. Atribuição de causalidade quando dois
+   projetos tocam o mesmo empreendimento é inerentemente compartilhada — assumir isso ao reportar
+   impacto por projeto, não forçar isolamento que não existe na prática.
+
+**Peças novas identificadas, ainda sem tabela**: `contrato_trabalho` (documento real, profissional
++ projeto + plano de trabalho, ancora Meta/Etapa/horas/custo), estrutura de Meta/Etapa/custo do
+plano de trabalho em si (hoje não modelada), `território` (recorte livre por Regional × Projeto,
+definido pelo Coordenador Regional), vínculo de execução por projeto (qual UNISOL estadual
+responde por qual Regional, hoje ausente — precisa ser `projeto_id`-scoped desde o início).
+
+**Nada disso foi implementado** — é registro de modelo conceitual pra retomar quando o Luciano
+quiser transformar isso em schema/telas de verdade.
+
 ## Migration 11 rodada em produção (2026-09-29) — corrige erro ao criar usuário
 
 Luciano bateu em `Could not find the 'tecnico_id' column of 'usuarios' in the schema cache` ao
