@@ -1,5 +1,15 @@
 # Status — Sistema UNISOL Brasil
 
+## Migration 11 rodada em produção (2026-09-29) — corrige erro ao criar usuário
+
+Luciano bateu em `Could not find the 'tecnico_id' column of 'usuarios' in the schema cache` ao
+tentar criar um usuário novo. Investigação achou que a migration 11
+(`supabase_migration_11_tecnico_atribuicao.sql` — coluna `usuarios.tecnico_id` + tabela
+`tecnico_empreendimento_projeto`) nunca tinha sido rodada em produção, apesar de ter sido
+registrada como concluída em 08/09 junto com a feature de dashboard/atribuição que depende dela.
+Confirmado via REST que migrations vizinhas (8, 10, 12) estavam OK — gap isolado. Rodada agora,
+confirmado que coluna+tabela existem. Cadastro de usuário deve funcionar normalmente.
+
 ## Diagnóstico revisado: reestruturação completa Parte A/B + Blocos 0-12 + Anexo A/B (2026-09-25)
 
 Reescrita total do instrumento a partir de `Diagnostico_revisado.docx` (comparado seção a seção
