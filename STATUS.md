@@ -1,5 +1,27 @@
 # Status — Sistema UNISOL Brasil
 
+## Motor de agenda+relato: Fase 0 construída, pausada aguardando ação manual (2026-09-29)
+
+Plano de ação completo (5 fases) aprovado e salvo em
+`~/.claude/plans/twinkling-imagining-fairy.md`. **Fase 0 (infra WhatsApp) construída e
+deployada** (commit `65a9a36`): `lib/evolution.ts` (envio outbound, 1 instância pra muitos
+números — não é o modelo conta-pareada do 168), `app/api/webhooks/evolution/route.ts` (recebe
+inbound, só loga em `blocos_webhook_log` por enquanto, sem lógica de negócio), migration 13
+(`supabase_migration_13_webhook_log_evolution.sql`, **revelada no Finder, ainda não rodada**).
+
+**Bloqueado até o Luciano fazer, manualmente** (fora do alcance do Claude Code):
+1. Criar uma instância Evolution **dedicada à UNISOL** (não reaproveitar a do vaikeuvou nem a do
+   168) e parear um número de WhatsApp.
+2. Configurar o webhook dessa instância pra `https://sistema.unisolbrasil.org.br/api/webhooks/evolution`,
+   evento `MESSAGES_UPSERT`, header customizado `x-evolution-secret`.
+3. Passar as 3 credenciais (`EVOLUTION_API_URL`, `EVOLUTION_API_KEY`, `EVOLUTION_INSTANCE`) pra
+   configurar no Vercel.
+
+**Retomar por aqui**: depois da instância criada e credenciais passadas, testar Fase 0 ponta a
+ponta (mandar mensagem de teste, confirmar log grava), rodar a migration pendente, e seguir pra
+Fase 1 (planejamento semanal — essa não depende do WhatsApp, dá pra adiantar em paralelo se
+quiser). Tasks 102-106 no tracker (Fase 0 in_progress, 1-4 pending).
+
 ## Elucubração parte 2: o "motor" de relato via WhatsApp, em parceria com o 168 (2026-09-29)
 
 Continuação direta da elucubração acima (mesmo dia). Luciano confessou que o 168 (produto pessoal
