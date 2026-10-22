@@ -34,7 +34,7 @@ export function renderSecao(id: string, ctx: SecaoContext) {
   const onA = (dados: unknown) => ctx.setAnaliseSecao(id, dados)
 
   switch (id) {
-    case 'parteA': return <SecaoParteAControle dados={r as never} onChange={onR} />
+    case 'parteA': return <SecaoParteAControle dados={r as never} onChange={onR} empreendimento={ctx.empreendimento} />
     case 'bloco0': return ctx.empreendimento
       ? <SecaoBloco0Identificacao empreendimento={ctx.empreendimento} onChange={ctx.setEmpreendimento} />
       : <p className="text-sm text-gray-400">Empreendimento não carregado.</p>

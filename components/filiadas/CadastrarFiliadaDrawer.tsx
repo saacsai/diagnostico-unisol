@@ -42,6 +42,7 @@ export function CadastrarFiliadaDrawer({ aberto, onFechar }: { aberto: boolean; 
     setErro('')
     if (!form.vinculo) { setErro('Selecione a quem a Filiada será filiada.'); return }
     if (!form.nome_fantasia.trim()) { setErro('Informe o nome fantasia.'); return }
+    if (!form.uf.trim()) { setErro('Informe o UF — é usado pra gerar o código único e pra definir o território no projeto.'); return }
 
     setSalvando(true)
     const sb = getSupabase()
@@ -116,13 +117,12 @@ export function CadastrarFiliadaDrawer({ aberto, onFechar }: { aberto: boolean; 
         </div>
 
         {form.razao_social && <CampoTexto label="Razão social" value={form.razao_social} onChange={v => set({ razao_social: v })} />}
-        {(form.endereco || form.municipio || form.uf) && (
-          <div className="grid grid-cols-3 gap-3">
-            <CampoTexto label="Município" value={form.municipio} onChange={v => set({ municipio: v })} />
-            <CampoTexto label="UF" value={form.uf} onChange={v => set({ uf: v.toUpperCase().slice(0, 2) })} />
-            <CampoTexto label="CEP" value={form.cep} onChange={v => set({ cep: v })} />
-          </div>
-        )}
+        <div className="grid grid-cols-3 gap-3">
+          <CampoTexto label="Município" value={form.municipio} onChange={v => set({ municipio: v })} />
+          <CampoTexto label="UF *" value={form.uf} onChange={v => set({ uf: v.toUpperCase().slice(0, 2) })} />
+          <CampoTexto label="CEP" value={form.cep} onChange={v => set({ cep: v })} />
+        </div>
+        <p className="text-[11px] text-gray-400">O UF define o código único da Filiada (gerado automaticamente) e o território dela dentro de cada projeto.</p>
 
         <p className="text-xs font-semibold text-gray-500 pt-2">Contato</p>
         <div className="grid grid-cols-1 gap-3">

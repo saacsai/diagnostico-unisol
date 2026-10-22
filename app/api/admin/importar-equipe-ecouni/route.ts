@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import { exigirAdmin } from '@/lib/auth'
 import { enviarEmail } from '@/lib/email'
+import { criarLinkCurto } from '@/lib/linkCurto'
 import { buscarPlanilha, type PessoaPlanilha } from '@/lib/importEcouni'
 
 const NOME_PROJETO = 'CooperaMais'
@@ -20,6 +21,13 @@ function gerarSenhaTemp() {
   let s = ''
   for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)]
   return s + '!1'
+}
+
+// Regional (rótulo vindo da planilha) -> UF representativo do território desse Executante.
+// Qualquer UF dentro do mesmo território resolve pro mesmo projeto_executante_id — só
+// precisa de um pra achar a linha certa (ver migration 20).
+const REGIONAL_PARA_UF_REPRESENTATIVO: Record<string, string> = {
+  Sudeste: 'SP', Nordeste: 'BA', Sul: 'RS', Norte: 'AC', 'Centro-Oeste': 'MT',
 }
 
 type ResultadoPessoa = {
@@ -58,6 +66,21 @@ export async function POST(req: NextRequest) {
 
   pessoas = pessoas.map(p => ({ ...p, email: CORRECOES_EMAIL[p.email] ?? p.email }))
   if (apenas) pessoas = pessoas.filter(p => p.email === apenas)
+
+  // Resolve cada Regional da planilha pro projeto_executante_id real (ver migration 20) —
+  // via território: pega um UF representativo do rótulo e busca quem é dono desse UF.
+  const { data: territorios } = await sb
+    .from('projeto_executante_territorio')
+    .select('uf, projeto_executante_id, projeto_executantes!inner(projeto_id)')
+    .eq('projeto_executantes.projeto_id', projeto.id)
+  const mapaUfParaExecutante = new Map(
+    (territorios ?? []).map(t => [t.uf, t.projeto_executante_id as string])
+  )
+  function resolverExecutanteId(regional: string | null): string | null {
+    if (!regional) return null
+    const uf = REGIONAL_PARA_UF_REPRESENTATIVO[regional]
+    return uf ? mapaUfParaExecutante.get(uf) ?? null : null
+  }
 
   const { data: usuariosExistentes } = await sb.from('usuarios').select('id, email, tecnico_id')
   const { data: tecnicosExistentes } = await sb.from('tecnicos').select('id, email')
@@ -146,21 +169,27 @@ export async function POST(req: NextRequest) {
       })
       if (erroLink || !linkData) throw new Error(erroLink?.message ?? 'Erro ao gerar link de acesso.')
 
+      // Link cru do Supabase é longo e aponta pra um domínio desconhecido
+      // (aloumokqafywqntdisen.supabase.co) — passa por um link curto no
+      // próprio domínio sistema.unisolbrasil.org.br antes de ir no email.
+      const linkCurto = await criarLinkCurto(linkData.properties.action_link)
+
       const texto = acao === 'criar'
-        ? `Olá, ${pessoa.nome}!\n\nVocê foi cadastrado(a) no Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}.\n\nPara definir sua senha e acessar o sistema, clique no link abaixo:\n${linkData.properties.action_link}\n\nSe não reconhece esse cadastro, pode ignorar este email.`
-        : `Olá, ${pessoa.nome}!\n\nSeu acesso ao Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}, foi atualizado. Pedimos que redefina sua senha pelo link abaixo:\n${linkData.properties.action_link}\n\nSe não reconhece esse pedido, pode ignorar este email.`
+        ? `Olá, ${pessoa.nome}!\n\nVocê foi cadastrado(a) no Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}.\n\nPara definir sua senha e acessar o sistema, clique no link abaixo:\n${linkCurto}\n\nSe não reconhece esse cadastro, pode ignorar este email.`
+        : `Olá, ${pessoa.nome}!\n\nSeu acesso ao Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}, foi atualizado. Pedimos que redefina sua senha pelo link abaixo:\n${linkCurto}\n\nSe não reconhece esse pedido, pode ignorar este email.`
       const envio = await enviarEmail(pessoa.email, 'Acesso ao Sistema UNISOL Brasil', texto)
       if (!envio.ok) console.error(`Falha ao enviar email pra ${pessoa.email}:`, envio.error)
 
-      // equipe_projeto: upsert (atualiza nível/regional se a pessoa já estava alocada)
+      // equipe_projeto: upsert (atualiza nível/território se a pessoa já estava alocada)
+      const projetoExecutanteId = resolverExecutanteId(pessoa.regional)
       if (equipeTecnicoIds.has(tecnicoId)) {
         await sb.from('equipe_projeto')
-          .update({ nivel_acesso: pessoa.nivelAcesso, regional: pessoa.regional })
+          .update({ nivel_acesso: pessoa.nivelAcesso, projeto_executante_id: projetoExecutanteId })
           .eq('projeto_id', projeto.id).eq('tecnico_id', tecnicoId)
       } else {
         await sb.from('equipe_projeto').insert({
           projeto_id: projeto.id, tecnico_id: tecnicoId,
-          nivel_acesso: pessoa.nivelAcesso, regional: pessoa.regional,
+          nivel_acesso: pessoa.nivelAcesso, projeto_executante_id: projetoExecutanteId,
         })
         equipeTecnicoIds.add(tecnicoId)
       }

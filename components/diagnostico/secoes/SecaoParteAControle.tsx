@@ -1,20 +1,43 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { ParteAControle as T } from '@/lib/diagnostico/schema'
+import { Empreendimento } from '@/lib/supabase'
+import { buscarResponsavelExecucao } from '@/lib/diagnostico/responsavelExecucao'
 import { CampoTexto } from '../campos/CampoTexto'
 import { CampoSelect } from '../campos/CampoSelect'
 import { CampoData } from '../campos/CampoData'
 
-export function SecaoParteAControle({ dados, onChange }: { dados: Partial<T>; onChange: (d: Partial<T>) => void }) {
+function CampoSomenteLeitura({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <p className="w-full border border-gray-100 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500">{value || '—'}</p>
+    </div>
+  )
+}
+
+export function SecaoParteAControle({
+  dados, onChange, empreendimento,
+}: {
+  dados: Partial<T>
+  onChange: (d: Partial<T>) => void
+  empreendimento: Empreendimento | null
+}) {
   const set = (patch: Partial<T>) => onChange({ ...dados, ...patch })
+  const [responsavel, setResponsavel] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!empreendimento) return
+    buscarResponsavelExecucao(empreendimento.id, empreendimento.uf ?? null).then(setResponsavel)
+  }, [empreendimento])
+
   return (
     <div className="space-y-4">
-      <CampoTexto label="A.1 Código único do empreendimento" value={dados.codigo_empreendimento ?? ''}
-        onChange={v => set({ codigo_empreendimento: v })} />
+      <CampoSomenteLeitura label="A.1 Código único do empreendimento (gerado no cadastro da Filiada)" value={empreendimento?.codigo ?? ''} />
       <CampoTexto label="A.2 Nome da pessoa aplicadora e instituição/BSR vinculada" value={dados.aplicador_instituicao ?? ''}
         onChange={v => set({ aplicador_instituicao: v })} />
-      <CampoTexto label="A.3 Base de Serviços Regional (BSR) responsável pela aplicação" value={dados.aplicador_bsr ?? ''}
-        onChange={v => set({ aplicador_bsr: v })} />
+      <CampoSomenteLeitura label="A.3 Base de Serviços Regional (BSR) responsável pela aplicação (vem do cadastro no projeto)" value={responsavel ?? ''} />
       <CampoTexto label="A.4 Pessoas que participaram da entrevista (nome, função e contato)" multiline
         value={dados.participantes_entrevista ?? ''} onChange={v => set({ participantes_entrevista: v })} />
       <CampoSelect label="A.5 Modalidade" value={dados.modalidade ?? ''} onChange={v => set({ modalidade: v as T['modalidade'] })}

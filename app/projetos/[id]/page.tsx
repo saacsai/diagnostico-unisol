@@ -12,6 +12,7 @@ import { DocumentosAdmin } from '@/components/institucional/DocumentosAdmin'
 import { FiliadosVinculados } from '@/components/projetos/FiliadosVinculados'
 import { EquipeProjeto } from '@/components/projetos/EquipeProjeto'
 import { AtribuicoesProjeto } from '@/components/projetos/AtribuicoesProjeto'
+import { ExecucaoRedeProjeto } from '@/components/projetos/ExecucaoRedeProjeto'
 
 export default function ProjetoDetalhePage({ params }: { params: { id: string } }) {
   return (
@@ -84,7 +85,13 @@ function ProjetoConteudo({ id }: { id: string }) {
           <CampoData label="Início da execução" value={dados.data_inicio_execucao ?? ''} onChange={v => set({ data_inicio_execucao: v })} />
           <CampoData label="Fim da execução" value={dados.data_fim_execucao ?? ''} onChange={v => set({ data_fim_execucao: v })} />
         </div>
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" checked={dados.execucao_em_rede} onChange={e => set({ execucao_em_rede: e.target.checked })} />
+          Execução em rede (Celebrante + Executantes por território)
+        </label>
       </div>
+
+      {dados.execucao_em_rede && <ExecucaoRedeProjeto projetoId={dados.id} />}
 
       <FiliadosVinculados projetoId={dados.id} />
       <EquipeProjeto projetoId={dados.id} />

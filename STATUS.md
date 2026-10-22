@@ -1,5 +1,72 @@
 # Status — Sistema UNISOL Brasil
 
+## Níveis de acesso por Regional/Território + modelo Celebrante/Executante (2026-10-22)
+
+Retomada do "ajuste na primeira fase" do projeto UNISOL (a evolução pro motor WhatsApp de
+agenda/relato, ver seção logo abaixo, continua pausada/deferida — não é isso). Luciano trouxe
+uma planilha Google Sheets real ("Níveis de Acesso aos Empreendimentos — Projeto EcoUni Redes
+Solidárias") como fonte viva do time do CooperaMais (ver memória `ecouni_planilha_acessos_fonte_viva`)
+— objetivo: dar acesso real de produção a todo o time, restrito por território, sem esperar
+todos os ~152 empreendimentos estarem cadastrados.
+
+**Migrations 14-21**, nessa ordem, cada uma rodada e testada em produção antes da próxima:
+
+- **14/16/17/18**: primeira tentativa de RLS por "Regional" (enum texto solto em
+  `equipe_projeto`/`empreendimento_projeto`). Bug real encontrado em teste com contas
+  descartáveis: um técnico Regional-Sul conseguia ver um empreendimento de outra regional —
+  rastreado até uma peculiaridade de como o Postgres avalia subqueries correlacionadas dentro
+  de uma policy RLS (não um erro de lógica — `auth.uid()` resolvia certo, os dados batiam
+  exatamente com o esperado, e mesmo assim a policy liberava acesso indevido). Corrigido
+  reescrevendo a regra como função `security definer` (`usuario_pode_ver_empreendimento`) — mais
+  robusta E testável isoladamente via RPC, padrão recomendado do Supabase pra RLS complexa.
+- **15**: links curtos (`/ir/[codigo]`) — emails de convite mostram
+  `sistema.unisolbrasil.org.br/ir/Ab3kX9Qz` em vez do link cru e longo do Supabase, que deixava
+  gente desconfiada de phishing.
+- **19**: só nacional/regional (coordenador) podem cadastrar/vincular empreendimento ao
+  CooperaMais — extensionista só visualiza.
+- **20 — mudança de modelo, a pedido do Luciano**: o enum "Regional" solto foi substituído pelo
+  modelo cadastral real do MROSC. Um projeto pode ser **execução em rede**: 1 Celebrante (quem
+  assina o termo, normalmente UNISOL Brasil) + N Executantes (uma Estadual, ou a própria Brasil
+  quando não há Estadual constituída no território), cada Executante responsável por um
+  **território de UFs**. Tabelas novas: `projeto_executantes`, `projeto_executante_territorio`.
+  A visibilidade de uma Filiada passa a ser **derivada do UF que ela já tem cadastrado**
+  (Seção 2/Bloco 0), batido contra o território do Executante do usuário — não precisa de tela
+  nova pra preencher manualmente. Seed real do CooperaMais: UNISOL SP (SP/RJ/ES/MG), UNISOL
+  Bahia (todo Nordeste), UNISOL RS (Sul), UNISOL Brasil (Celebrante + Executante direto em
+  Centro-Oeste/Norte, onde não há Estadual constituída).
+- **21**: `empreendimentos.codigo` passou a ser **gerado pelo sistema no cadastro** (trigger +
+  sequência por UF, formato `SP-0001`), não mais digitado — UF virou campo obrigatório no
+  cadastro de Filiada.
+
+**UI nova/ajustada**:
+- `/projetos/[id]`: toggle "Execução em rede" + seção `ExecucaoRedeProjeto` (adicionar/remover
+  Celebrante/Executante, gerenciar território por UF, vincular Filiada já filtrada por UF do
+  território — "+ Vincular Filiada" dentro de cada Executante). Cada card de Executante ganhou
+  um acordeão (seta expansível) mostrando as próprias Filiadas e Técnicos, sem precisar rolar
+  pras listas genéricas do projeto inteiro.
+- Tela de Equipe do projeto (`EquipeProjeto.tsx`) ganhou os campos Nível de acesso + Executante
+  na hora de alocar um técnico — antes só dava pra definir isso rodando o import da planilha.
+- Parte A do diagnóstico: A.1 (código único) e A.3 (BSR responsável) **deixaram de ser
+  digitados pelo técnico** — A.1 mostra o `empreendimentos.codigo` real (gerado no cadastro);
+  A.3 mostra o Executante responsável derivado automaticamente (ex: "UNISOL São Paulo
+  (Sudeste)"), calculado a partir do UF da Filiada + território do projeto em rede ao qual ela
+  está vinculada.
+
+**Import da planilha** (`app/api/admin/importar-equipe-ecouni/route.ts`): resolve o rótulo
+"Regional" da planilha pro `projeto_executante_id` real via território (um UF representativo de
+cada rótulo). Todo mundo da planilha (conta nova ou já existente) recebe email de
+convite/redefinição de senha — pedido explícito do Luciano, não só quem é conta nova. Erro
+"New password should be different..." traduzido pro português em `/redefinir-senha`.
+
+**Processo**: cada teste de RLS usou contas descartáveis criadas via Admin API e apagadas depois
+(nunca mintou sessão de conta real — ver memória `feedback_no_real_credential_minting`), inclusive
+quando precisou decodificar o JWT retornado pra confirmar `auth.uid()`/`role` na mão, já que a
+investigação do bug de RLS não fechava só olhando pra lógica da policy.
+
+**Pendente**: rodar o lote completo de convite/redefinição de senha pras ~22 pessoas restantes
+da planilha (Luciano já foi testado via `?apenas=`) — aguardando autorização formal dele antes
+de disparar e-mail em massa.
+
 ## Motor de agenda+relato: Fase 0 construída, pausada aguardando ação manual (2026-09-29)
 
 Plano de ação completo (5 fases) aprovado e salvo em

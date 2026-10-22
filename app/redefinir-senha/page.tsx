@@ -7,6 +7,18 @@ const PRIMARY = '#1B5E37'
 const CARD_BG = '#F5F5F5'
 const BORDER  = '#E5E5E5'
 
+// Supabase devolve a mensagem de erro em inglês — traduz as mais comuns
+// desse fluxo específico (definir senha), mantém o texto original como
+// fallback pra não esconder algo inesperado.
+function traduzirErro(msg: string): string {
+  const mapa: Record<string, string> = {
+    'New password should be different from the old password.': 'A nova senha precisa ser diferente da senha anterior.',
+    'Password should be at least 6 characters.': 'A senha precisa ter pelo menos 6 caracteres.',
+    'Auth session missing!': 'Link expirado ou já utilizado — peça um novo convite.',
+  }
+  return mapa[msg] ?? msg
+}
+
 export default function RedefinirSenhaPage() {
   const [pronto, setPronto]     = useState(false)
   const [senha, setSenha]       = useState('')
@@ -32,7 +44,7 @@ export default function RedefinirSenhaPage() {
     setLoading(true)
     setErro('')
     const { error } = await getSupabase().auth.updateUser({ password: senha })
-    if (error) { setErro(error.message); setLoading(false); return }
+    if (error) { setErro(traduzirErro(error.message)); setLoading(false); return }
     setOk(true)
     setTimeout(() => { window.location.href = '/diagnosticos' }, 2000)
   }

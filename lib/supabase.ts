@@ -199,8 +199,28 @@ export interface Projeto {
   status: StatusProjeto
   data_inicio_execucao: string | null
   data_fim_execucao: string | null
+  /** MROSC: 1 Celebrante + N Executantes, cada um responsável por um território de UFs */
+  execucao_em_rede: boolean
   ativo: boolean
   created_at: string
+}
+
+// Quem celebra/executa um projeto em rede — null em unisol_estadual_id = UNISOL Brasil
+// (nacional). Uma entidade pode acumular os dois papéis (ex: Brasil é Celebrante e também
+// Executante direto nos territórios sem Estadual constituída).
+export interface ProjetoExecutante {
+  id: string
+  projeto_id: string
+  unisol_estadual_id: string | null
+  eh_celebrante: boolean
+  eh_executante: boolean
+  created_at: string
+}
+
+export interface ProjetoExecutanteTerritorio {
+  id: string
+  projeto_executante_id: string
+  uf: string
 }
 
 // Banco de talentos técnicos — separado de `usuarios` (login). Cadastro de quem está
@@ -222,6 +242,8 @@ export interface Tecnico {
 // independente de empreendimento_projeto (Filiados no projeto) e de tecnicos.unisol_estadual_id
 // (vínculo institucional do técnico).
 export type NivelAcesso = 'nacional' | 'regional' | 'extensionista'
+// Regional segue existindo só como rótulo de exibição derivado (ver lib/importEcouni.ts) —
+// quem decide visibilidade de verdade agora é o território por UF do Executante.
 export type Regional = 'Norte' | 'Nordeste' | 'Sudeste' | 'Sul' | 'Centro-Oeste'
 
 export interface EquipeProjeto {
@@ -231,8 +253,8 @@ export interface EquipeProjeto {
   cargo: string | null
   /** Escopo de acesso aos empreendimentos DESSE projeto — null = sem restrição (módulos que não usam nível de acesso) */
   nivel_acesso: NivelAcesso | null
-  /** Só relevante quando nivel_acesso é 'regional'/'extensionista' */
-  regional: Regional | null
+  /** Território (Executante) desse usuário nesse projeto — null = sem território específico (nacional/celebrante, vê tudo) */
+  projeto_executante_id: string | null
   data_entrada: string
   data_saida: string | null
   ativo: boolean
@@ -257,8 +279,6 @@ export interface EmpreendimentoProjeto {
   empreendimento_id: string
   projeto_id: string
   status: StatusEmpProjeto
-  /** Qual Regional (escopo do projeto, não institucional) esse empreendimento pertence dentro desse projeto */
-  regional: Regional | null
   data_entrada: string
   created_at: string
 }
