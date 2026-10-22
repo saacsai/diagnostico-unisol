@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 })
 
   const confirmar = req.nextUrl.searchParams.get('confirmar') === '1'
+  const apenas = req.nextUrl.searchParams.get('apenas')?.toLowerCase() || null
   const sb = getSupabaseAdmin()
 
   const { data: projeto, error: erroProjeto } = await sb
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   pessoas = pessoas.map(p => ({ ...p, email: CORRECOES_EMAIL[p.email] ?? p.email }))
+  if (apenas) pessoas = pessoas.filter(p => p.email === apenas)
 
   const { data: usuariosExistentes } = await sb.from('usuarios').select('id, email, tecnico_id')
   const { data: tecnicosExistentes } = await sb.from('tecnicos').select('id, email')
@@ -133,17 +135,22 @@ export async function POST(req: NextRequest) {
           await sb.auth.admin.deleteUser(usuarioId)
           throw new Error(erroUsuario.message)
         }
-
-        const { data: linkData, error: erroLink } = await sb.auth.admin.generateLink({
-          type: 'recovery', email: pessoa.email,
-          options: { redirectTo: `${SITE_URL}/redefinir-senha` },
-        })
-        if (erroLink || !linkData) throw new Error(erroLink?.message ?? 'Erro ao gerar link de acesso.')
-
-        const texto = `Olá, ${pessoa.nome}!\n\nVocê foi cadastrado(a) no Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}.\n\nPara definir sua senha e acessar o sistema, clique no link abaixo:\n${linkData.properties.action_link}\n\nSe não reconhece esse cadastro, pode ignorar este email.`
-        const envio = await enviarEmail(pessoa.email, 'Acesso ao Sistema UNISOL Brasil', texto)
-        if (!envio.ok) console.error(`Falha ao enviar convite pra ${pessoa.email}:`, envio.error)
       }
+
+      // Todo mundo recebe o email — quem já tinha conta também, pra
+      // redefinir a senha (pedido explícito do Luciano: padronizar acesso
+      // pra todo o time, não só quem é conta nova).
+      const { data: linkData, error: erroLink } = await sb.auth.admin.generateLink({
+        type: 'recovery', email: pessoa.email,
+        options: { redirectTo: `${SITE_URL}/redefinir-senha` },
+      })
+      if (erroLink || !linkData) throw new Error(erroLink?.message ?? 'Erro ao gerar link de acesso.')
+
+      const texto = acao === 'criar'
+        ? `Olá, ${pessoa.nome}!\n\nVocê foi cadastrado(a) no Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}.\n\nPara definir sua senha e acessar o sistema, clique no link abaixo:\n${linkData.properties.action_link}\n\nSe não reconhece esse cadastro, pode ignorar este email.`
+        : `Olá, ${pessoa.nome}!\n\nSeu acesso ao Sistema UNISOL Brasil, no projeto ${NOME_PROJETO}, foi atualizado. Pedimos que redefina sua senha pelo link abaixo:\n${linkData.properties.action_link}\n\nSe não reconhece esse pedido, pode ignorar este email.`
+      const envio = await enviarEmail(pessoa.email, 'Acesso ao Sistema UNISOL Brasil', texto)
+      if (!envio.ok) console.error(`Falha ao enviar email pra ${pessoa.email}:`, envio.error)
 
       // equipe_projeto: upsert (atualiza nível/regional se a pessoa já estava alocada)
       if (equipeTecnicoIds.has(tecnicoId)) {
