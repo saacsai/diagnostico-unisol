@@ -5,12 +5,14 @@ import { enviarEmail } from '@/lib/email'
 import { buscarPlanilha, type PessoaPlanilha } from '@/lib/importEcouni'
 
 const NOME_PROJETO = 'CooperaMais'
+const SITE_URL = 'https://sistema.unisolbrasil.org.br'
 
 // A planilha tem o email antigo/pessoal do Luciano — a conta real dele no
 // sistema usa outro email. Sem essa correção, criaríamos uma conta duplicada
 // em vez de linkar na existente.
 const CORRECOES_EMAIL: Record<string, string> = {
   'luciano.maeda@gmail.com': 'luciano.maeda@saacs.com.br',
+  'vitorcn3@gail.com': 'vitorcn3@gmail.com', // erro de digitação confirmado pelo Luciano
 }
 
 function gerarSenhaTemp() {
@@ -134,6 +136,7 @@ export async function POST(req: NextRequest) {
 
         const { data: linkData, error: erroLink } = await sb.auth.admin.generateLink({
           type: 'recovery', email: pessoa.email,
+          options: { redirectTo: `${SITE_URL}/redefinir-senha` },
         })
         if (erroLink || !linkData) throw new Error(erroLink?.message ?? 'Erro ao gerar link de acesso.')
 
