@@ -1,13 +1,13 @@
 import withPWAInit from '@ducanh2912/next-pwa'
 
+// A raiz ("/") agora redireciona sozinha, client-side, em app/page.tsx —
+// detecta token de recuperação de senha (PASSWORD_RECOVERY) antes de
+// mandar pro /login. Esse redirect aqui era no nível do framework, rodava
+// ANTES do componente da página, e engolia o fragmento #access_token do
+// link de redefinir senha sem dar chance da página reagir — removido de
+// propósito (2026-10-22).
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  async redirects() {
-    return [
-      { source: '/', destination: '/login', permanent: false },
-    ]
-  },
-}
+const nextConfig = {}
 
 const withPWA = withPWAInit({
   dest: 'public',
