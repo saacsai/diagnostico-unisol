@@ -221,11 +221,18 @@ export interface Tecnico {
 // Equipe — aloca um Técnico (banco de talentos) num Projeto, com cargo/função. Eixo
 // independente de empreendimento_projeto (Filiados no projeto) e de tecnicos.unisol_estadual_id
 // (vínculo institucional do técnico).
+export type NivelAcesso = 'nacional' | 'regional' | 'extensionista'
+export type Regional = 'Norte' | 'Nordeste' | 'Sudeste' | 'Sul' | 'Centro-Oeste'
+
 export interface EquipeProjeto {
   id: string
   projeto_id: string
   tecnico_id: string
   cargo: string | null
+  /** Escopo de acesso aos empreendimentos DESSE projeto — null = sem restrição (módulos que não usam nível de acesso) */
+  nivel_acesso: NivelAcesso | null
+  /** Só relevante quando nivel_acesso é 'regional'/'extensionista' */
+  regional: Regional | null
   data_entrada: string
   data_saida: string | null
   ativo: boolean
@@ -250,6 +257,8 @@ export interface EmpreendimentoProjeto {
   empreendimento_id: string
   projeto_id: string
   status: StatusEmpProjeto
+  /** Qual Regional (escopo do projeto, não institucional) esse empreendimento pertence dentro desse projeto */
+  regional: Regional | null
   data_entrada: string
   created_at: string
 }
