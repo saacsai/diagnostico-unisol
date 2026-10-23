@@ -30,16 +30,20 @@ export function useSyncStatus() {
   const pendentesEmp = useLiveQuery(
     () => getDB().empreendimentos.filter(e => !!e._dirty || e._op === 'insert').count(),
   )
-  const comErro = useLiveQuery(async () => {
-    const [a, b] = await Promise.all([
-      getDB().diagnosticos.filter(d => !!d._erro).count(),
-      getDB().empreendimentos.filter(e => !!e._erro).count(),
+  const errosDetalhe = useLiveQuery(async () => {
+    const [diags, emps] = await Promise.all([
+      getDB().diagnosticos.filter(d => !!d._erro).toArray(),
+      getDB().empreendimentos.filter(e => !!e._erro).toArray(),
     ])
-    return a + b
+    return [
+      ...diags.map(d => ({ tipo: 'Diagnóstico' as const, id: d.id, mensagem: d._erro! })),
+      ...emps.map(e => ({ tipo: 'Filiada' as const, id: e.id, mensagem: e._erro! })),
+    ]
   })
 
+  const comErro = errosDetalhe?.length ?? 0
   const pendentes = (pendentesDiag ?? 0) + (pendentesEmp ?? 0)
   const estado: EstadoSync = !online ? 'offline' : pendentes > 0 ? 'sincronizando' : 'tudo-sincronizado'
 
-  return { estado, online, pendentes, comErro: comErro ?? 0 }
+  return { estado, online, pendentes, comErro, errosDetalhe: errosDetalhe ?? [] }
 }
