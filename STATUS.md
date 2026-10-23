@@ -1,5 +1,22 @@
 # Status — Sistema UNISOL Brasil
 
+## Os 152 empreendimentos reais do CooperaMais importados (2026-10-24)
+
+Item pendente desde o início do projeto (citado em quase toda seção anterior deste arquivo como
+"ainda não recebida") — Luciano passou a planilha real (CNPJ/Nome/UF/Cidade/E-mail/Telefone,
+`lib/importEmpreendimentosCooperamais.ts`). Rota idempotente
+(`app/api/admin/importar-empreendimentos-cooperamais`, dry-run por padrão, dedup por CNPJ)
+confirmou e executou: **152 empreendimentos, 151 novos + 1 já existente (ABAM, mesmo CNPJ),
+0 erros** — todos vinculados ao projeto CooperaMais, todos com código único gerado
+automaticamente (migration 21), nos mesmos 13 UFs já cobertos pelo território dos Executantes
+(migration 20) — a visibilidade por Regional/Executante passa a valer de verdade agora que
+existe dado real, não só o caso de teste (ABAM).
+
+**Não fez parte desta importação**: nenhum diagnóstico foi criado (ficam todos "Não iniciado"),
+nenhum email foi enviado — é só cadastro + vínculo ao projeto. O lote de convite/redefinição de
+senha pro time (22 pessoas da planilha EcoUni) é uma ação separada, já pronta desde antes,
+rodada pra 1 pessoa (Luciano) em teste.
+
 ## Níveis de acesso por Regional/Território + modelo Celebrante/Executante (2026-10-22)
 
 Retomada do "ajuste na primeira fase" do projeto UNISOL (a evolução pro motor WhatsApp de
