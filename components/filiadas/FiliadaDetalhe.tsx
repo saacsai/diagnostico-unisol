@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
+import { getDB } from '@/lib/offline/db'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { Drawer } from '@/components/layout/Drawer'
 import { SecaoBloco0Identificacao } from '@/components/diagnostico/secoes/SecaoBloco0Identificacao'
@@ -20,6 +21,10 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
     const sb = getSupabase()
     const { data: dadosEmp } = await sb.from('empreendimentos').select('*').eq('id', empreendimentoId).single()
     setEmp(dadosEmp as Empreendimento)
+    // useAutosaveEmpreendimento grava via Dexie .update(), que só funciona se o registro já
+    // existir localmente — sem isso, editar um empreendimento nunca aberto antes neste
+    // navegador (ex: um dos 151 importados da planilha real) falha em silêncio ao salvar.
+    if (dadosEmp) await getDB().empreendimentos.put(dadosEmp as Empreendimento)
 
     const { data: diags } = await sb
       .from('diagnosticos')
