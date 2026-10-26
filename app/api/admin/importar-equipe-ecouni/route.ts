@@ -46,6 +46,11 @@ export async function POST(req: NextRequest) {
 
   const confirmar = req.nextUrl.searchParams.get('confirmar') === '1'
   const apenas = req.nextUrl.searchParams.get('apenas')?.toLowerCase() || null
+  const excluir = new Set(
+    (req.nextUrl.searchParams.get('excluir') ?? '')
+      .toLowerCase().split(',').map(e => e.trim()).filter(Boolean)
+      .map(e => CORRECOES_EMAIL[e] ?? e)
+  )
   const sb = getSupabaseAdmin()
 
   const { data: projeto, error: erroProjeto } = await sb
@@ -66,6 +71,7 @@ export async function POST(req: NextRequest) {
 
   pessoas = pessoas.map(p => ({ ...p, email: CORRECOES_EMAIL[p.email] ?? p.email }))
   if (apenas) pessoas = pessoas.filter(p => p.email === apenas)
+  if (excluir.size) pessoas = pessoas.filter(p => !excluir.has(p.email))
 
   // Resolve cada Regional da planilha pro projeto_executante_id real (ver migration 20) —
   // via território: pega um UF representativo do rótulo e busca quem é dono desse UF.
