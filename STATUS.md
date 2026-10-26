@@ -1,5 +1,29 @@
 # Status — Sistema UNISOL Brasil
 
+## Migration 22 — mesmo gap da migration 11, agora em `relato_versao` (2026-10-24)
+
+Erro real em produção (`42703 undefined_column`) ao salvar um diagnóstico revelou que
+`diagnosticos.relato_versao` (migration 06, escrita em 2026-09-03) nunca tinha sido rodada de
+verdade — idêntico ao gap achado na migration 11 em 2026-09-29 (SQL escrito, registrado como
+concluído, mas a etapa de colar no SQL Editor ficou pra trás). O sync engine manda o campo
+porque o TypeScript sempre teve ele; só o banco nunca recebeu a coluna. Auditado o resto de
+`diagnosticos`/`empreendimentos` contra os tipos TypeScript — esse era o único gap. Migration
+22 rodada e confirmada via REST (`supabase_migration_22_fix_relato_versao.sql`).
+
+## Dois fixes pós-import dos 152 empreendimentos (2026-10-23)
+
+- **Erro de sync real na UI**: o badge de "erro de envio" era só uma contagem, sem dizer o
+  motivo — a mensagem real do Supabase já estava guardada em `_erro` por item, só não tinha UI
+  pra mostrar. Agora clica e expande.
+- **Bug real corrigido**: `useAutosaveEmpreendimento` grava via Dexie `.update()`, que só
+  funciona se o registro já existir no IndexedDB local — sem isso falha em silêncio.
+  `FiliadaDetalhe` nunca esquentava esse cache antes de editar, então qualquer empreendimento
+  recém-importado (os 151 novos do CooperaMais, nunca abertos nesse navegador antes) dava erro
+  ao salvar assim que o usuário editava algo (ex: Buscar CNPJ preenchendo endereço). Corrigido
+  esquentando o cache local logo após buscar do Supabase.
+- Sidebar do wizard trocou "Parte A"/"Bloco 1" (quebrava em 2 linhas dentro da bolinha) por só
+  "A"/"1" — mesmo padrão enxuto que Anexo A/B já usavam.
+
 ## Os 152 empreendimentos reais do CooperaMais importados (2026-10-24)
 
 Item pendente desde o início do projeto (citado em quase toda seção anterior deste arquivo como
