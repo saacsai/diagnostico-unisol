@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
         }
 
         const { error: erroUsuario } = await sb.from('usuarios').insert({
-          id: usuarioId, nome: pessoa.nome, email: pessoa.email, perfil: 'aplicador', tecnico_id: tecnicoId,
+          id: usuarioId, nome: pessoa.nome, email: pessoa.email, perfil: 'tecnico', tecnico_id: tecnicoId,
         })
         if (erroUsuario) {
           await sb.auth.admin.deleteUser(usuarioId)

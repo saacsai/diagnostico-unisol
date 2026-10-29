@@ -1,5 +1,26 @@
 # Status — Sistema UNISOL Brasil
 
+## Bug real: 21 técnicos do disparo em massa sem acesso aos Blocos 10-12/Anexo A/B (2026-10-29)
+
+Técnicos reportaram não conseguir abrir as seções técnicas do diagnóstico (Blocos 10, 11, 12,
+Anexo A, Anexo B — tela mostrava "Esta seção é preenchida pela equipe técnica após a
+entrevista" em vez do conteúdo). Causa raiz: `app/api/admin/importar-equipe-ecouni/route.ts`
+gravava `usuarios.perfil = 'aplicador'` pra **todo mundo** criado via o lote, sem diferenciar —
+mas o gate de acesso às seções técnicas (`DiagnosticoWizardShell.tsx` e `SidebarSecoes.tsx`) só
+libera Blocos 10-12/Anexos pra `perfil = 'tecnico'` (ou `admin`). `aplicador` é o perfil mais
+restrito, pensado pro caso (ainda não implementado) de dirigente de cooperativa preenchendo
+sozinho via link — nunca deveria ter sido usado pros técnicos reais do time.
+
+**Corrigido**: rota passa a gravar `perfil: 'tecnico'` nas novas contas (commit a seguir);
+backfill direto no banco corrigiu as 21 contas já afetadas (as 19 do lote do dia 26/10 + Gabriele
++ Carla, cadastradas manualmente na mesma sessão) de `aplicador` para `tecnico`. Confirmado via
+REST: 0 contas com `aplicador` sobrando, 22 `tecnico` + 5 `admin`.
+
+**Lição**: `usuarios.perfil` (admin/tecnico/aplicador, controla o que a pessoa vê no sistema
+inteiro) é um campo diferente de `equipe_projeto.nivel_acesso` (nacional/regional/extensionista,
+controla só o escopo territorial dentro de um projeto) — fácil confundir os dois ao escrever uma
+rota de importação em massa. Checar sempre os dois ao dar acesso a alguém.
+
 ## Disparo em massa de convites do time EcoUni — concluído (2026-10-26)
 
 Pendência registrada desde 2026-08-31 ("configurar SMTP próprio antes de convidar todo mundo")
