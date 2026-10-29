@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, UnisolEstadual, Diagnostico, Projeto } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
 import { CadastrarFiliadaDrawer } from './CadastrarFiliadaDrawer'
 
 export function FiliadasLista() {
@@ -116,6 +117,7 @@ export function FiliadasLista() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">CNPJ</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Filiação</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Diagnóstico</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Maturidade comercial</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Projetos em execução</th>
               </tr>
             </thead>
@@ -149,6 +151,18 @@ export function FiliadasLista() {
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Não iniciado</span>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const m = calcularMaturidadeComercial(diag?.respostas)
+                        return m.nivel ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                            style={{ background: MATURIDADE_COR[m.nivel].bg, color: MATURIDADE_COR[m.nivel].cor }}
+                            title={m.motivo}>
+                            {MATURIDADE_LABEL[m.nivel]}
+                          </span>
+                        ) : <span className="text-xs text-gray-400">—</span>
+                      })()}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">
                       {projs.length === 0 ? '—' : projs.map(p => p.nome).join(', ')}
                     </td>
@@ -156,7 +170,7 @@ export function FiliadasLista() {
                 )
               })}
               {filtrados.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">Nenhuma Filiada encontrada.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">Nenhuma Filiada encontrada.</td></tr>
               )}
             </tbody>
           </table>

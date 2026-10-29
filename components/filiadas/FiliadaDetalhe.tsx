@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
 import { getDB } from '@/lib/offline/db'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
 import { Drawer } from '@/components/layout/Drawer'
 import { SecaoBloco0Identificacao } from '@/components/diagnostico/secoes/SecaoBloco0Identificacao'
 
@@ -80,6 +81,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
   if (!emp) return <p className="text-sm text-red-500">Filiada não encontrada.</p>
 
   const completude = atual ? calcularCompletude(atual, emp, idsComAnexoA.has(atual.id)) : null
+  const maturidade = atual ? calcularMaturidadeComercial(atual.respostas) : null
 
   return (
     <div className="max-w-3xl mx-auto lg:mx-0 space-y-6">
@@ -111,6 +113,15 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                 {atual.rotulo_versao ? <span className="text-gray-400 font-normal"> · {atual.rotulo_versao}</span> : null}
               </p>
               <p className="text-xs text-gray-400">Status: {atual.status}</p>
+              {maturidade?.nivel && (
+                <p className="mt-1.5">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ background: MATURIDADE_COR[maturidade.nivel].bg, color: MATURIDADE_COR[maturidade.nivel].cor }}
+                    title={maturidade.motivo}>
+                    Maturidade comercial: {MATURIDADE_LABEL[maturidade.nivel]}
+                  </span>
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
               <button onClick={() => window.location.href = `/diagnosticos?id=${atual.id}`}

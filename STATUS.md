@@ -1,5 +1,29 @@
 # Status — Sistema UNISOL Brasil
 
+## Maturidade comercial automática — nova feature (2026-10-29)
+
+Surgiu de uma conversa cruzada com o relatório mensal do CooperaMais: a régua de maturidade
+comercial (INICIAL/EM FASE/APTA) criada pro Plano de Ação — Implantação do CND não precisa de
+roteiro novo pros técnicos preencherem — o **Bloco 5 (Gestão Comercial)** do diagnóstico já
+institucional já captura quase tudo (canais de venda e %, emissão de NF, participação em
+licitações PAA/PNAE, e um campo 5.7 + "régua de fechamento do bloco" em escala 0-4).
+
+`lib/diagnostico/maturidadeComercial.ts` (novo): deriva INICIAL/EM FASE/APTA automaticamente a
+partir das respostas do Bloco 5, sem pergunta nova nenhuma.
+- **Nota 0-4 existe** (régua de fechamento do bloco, prioridade, ou campo 5.7 isolado): mapeia
+  0-1→Inicial, 2-3→Em Fase, 4→Apta — com trava: nota 4 mas `emite_nf='nao'` rebaixa pra Em Fase
+  (sem NF não opera nos canais formais do CND).
+- **Nota não existe ainda** (caso real já visto em produção — técnico preenche canais/NF mas não
+  dá a nota): estima por NF + canal ativo, **mas nunca infere "Apta" sozinho** — teto da
+  estimativa é Em Fase, "Apta" exige avaliação explícita do técnico (decisão com o Luciano,
+  evitar classificar como "pronta pra vender" por inferência de checkbox).
+
+Badge colorido (🔴/🟡/🟢) exibido em `/filiadas/[id]` (detalhe) e como coluna nova em
+`/filiadas` (lista — dá pra ver a maturidade das 152 de uma vez, sem query extra, reaproveita o
+`diagnosticos.respostas` que a lista já carrega). Testado contra o único diagnóstico real com
+Bloco 5 parcial em produção (ABAM: NF sempre + PAA/PNAE/venda direta ativos, sem nota 5.7) —
+resultado "Em Fase", como esperado.
+
 ## Bug real: 21 técnicos do disparo em massa sem acesso aos Blocos 10-12/Anexo A/B (2026-10-29)
 
 Técnicos reportaram não conseguir abrir as seções técnicas do diagnóstico (Blocos 10, 11, 12,
