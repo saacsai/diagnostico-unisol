@@ -1,5 +1,19 @@
 # Status — Sistema UNISOL Brasil
 
+## Congelar diagnóstico de Filiadas + lote de 22 congeladas (2026-11-06)
+
+`empreendimentos.diagnostico_liberado` (boolean, default true, migration 23) — quando false, a
+Filiada some da lista de "iniciar diagnóstico novo" e o wizard bloqueia edição do diagnóstico já
+existente (dado nunca é excluído). Controle fica em `/filiadas/[id]` (botão congelar/descongelar,
+badge 🔒) e aparece como 🔒 também na lista geral de Filiadas.
+
+**Lote aplicado no mesmo dia**: 22 empreendimentos "a substituir" no CooperaMais, lista recebida
+da Melissa Souza Branco via WhatsApp (05/11), lida pelo MCP do 168 (`buscar_whatsapp`). Nomes
+cruzados contra o cadastro real (razão social + nome fantasia, normalizado, com bônus de UF) —
+todos os 22 bateram com confiança alta, confirmados por município/UF antes de aplicar via REST
+direto (service role key local, `.env.local` do repo). Lista completa das 22 em
+`[[project_diagnostico_unisol]]`.
+
 ## Maturidade comercial automática — nova feature (2026-10-29)
 
 Surgiu de uma conversa cruzada com o relatório mensal do CooperaMais: a régua de maturidade
