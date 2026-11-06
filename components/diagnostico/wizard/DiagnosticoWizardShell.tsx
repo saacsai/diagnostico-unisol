@@ -135,6 +135,18 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
     </div>
   )
 
+  if (empreendimento && empreendimento.diagnostico_liberado === false) return (
+    <div className="p-8 max-w-md">
+      <p className="text-sm font-medium text-gray-900 mb-1">Diagnóstico congelado</p>
+      <p className="text-sm text-gray-500">
+        O diagnóstico de {empreendimento.nome_fantasia || empreendimento.razao_social || 'esta Filiada'} está
+        temporariamente congelado e não pode ser editado agora. Os dados já preenchidos continuam salvos —
+        fale com a coordenação se precisar reabrir.
+      </p>
+      <a href="/diagnosticos" className="inline-block mt-4 text-xs text-gray-400 hover:text-gray-600">← Voltar</a>
+    </div>
+  )
+
   const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento, temAnexoA)
 
   const cfg = secaoAtual(secaoId)

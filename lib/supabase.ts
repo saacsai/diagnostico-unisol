@@ -181,6 +181,7 @@ export interface Empreendimento {
   reconhece_economia_solidaria: ReconheceEconomiaSolidaria | null
   bloco0_regua_classificacao: Escala0a4
   bloco0_regua_evidencia: string | null
+  diagnostico_liberado: boolean
   created_at: string
   updated_at: string
 }

@@ -55,6 +55,15 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
   }
   useEffect(() => { carregar() }, [empreendimentoId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function alternarCongelamento() {
+    if (!emp) return
+    const novoValor = !(emp.diagnostico_liberado === false)
+    const sb = getSupabase()
+    const { error } = await sb.from('empreendimentos').update({ diagnostico_liberado: novoValor }).eq('id', emp.id)
+    if (error) { alert(`Erro ao atualizar: ${error.message}`); return }
+    setEmp({ ...emp, diagnostico_liberado: novoValor })
+  }
+
   async function iniciarDiagnostico() {
     setIniciando(true)
     const sb = getSupabase()
@@ -85,9 +94,20 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
 
   return (
     <div className="max-w-3xl mx-auto lg:mx-0 space-y-6">
-      <div>
-        <a href="/filiadas" className="text-xs text-gray-400 hover:text-gray-600">← Filiadas</a>
-        <h1 className="text-lg font-bold" style={{ color: 'var(--primary)' }}>{emp.nome_fantasia || emp.razao_social || 'Sem nome'}</h1>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <a href="/filiadas" className="text-xs text-gray-400 hover:text-gray-600">← Filiadas</a>
+          <h1 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--primary)' }}>
+            {emp.nome_fantasia || emp.razao_social || 'Sem nome'}
+            {emp.diagnostico_liberado === false && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">🔒 Congelado</span>
+            )}
+          </h1>
+        </div>
+        <button onClick={alternarCongelamento}
+          className="text-xs font-medium rounded-lg px-3 py-1.5 border border-gray-200 text-gray-500 hover:bg-gray-50 flex-shrink-0">
+          {emp.diagnostico_liberado === false ? 'Descongelar diagnóstico' : 'Congelar diagnóstico'}
+        </button>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -99,8 +119,10 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--primary)' }}>Diagnóstico</h2>
         {!atual ? (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">Nenhum diagnóstico iniciado ainda.</p>
-            <button onClick={iniciarDiagnostico} disabled={iniciando}
+            <p className="text-sm text-gray-500">
+              {emp.diagnostico_liberado === false ? 'Diagnóstico congelado — descongele pra iniciar.' : 'Nenhum diagnóstico iniciado ainda.'}
+            </p>
+            <button onClick={iniciarDiagnostico} disabled={iniciando || emp.diagnostico_liberado === false}
               className="text-sm font-medium text-white rounded-lg px-4 py-2 disabled:opacity-50" style={{ background: 'var(--primary)' }}>
               {iniciando ? 'Criando…' : 'Iniciar Diagnóstico'}
             </button>
@@ -125,10 +147,11 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
             </div>
             <div className="flex gap-2">
               <button onClick={() => window.location.href = `/diagnosticos?id=${atual.id}`}
-                className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50">
+                disabled={emp.diagnostico_liberado === false}
+                className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                 Editar
               </button>
-              {completude!.pct === 100 && (
+              {completude!.pct === 100 && emp.diagnostico_liberado !== false && (
                 <button onClick={() => setDrawer(true)}
                   className="text-sm font-medium text-white rounded-lg px-4 py-2" style={{ background: 'var(--primary)' }}>
                   Atualizar diagnóstico

@@ -133,7 +133,12 @@ export function FiliadasLista() {
                 return (
                   <tr key={e.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer"
                     onClick={() => window.location.href = `/filiadas/${e.id}`}>
-                    <td className="px-4 py-3 font-medium text-gray-900">{e.nome_fantasia || e.razao_social || 'Sem nome'}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {e.nome_fantasia || e.razao_social || 'Sem nome'}
+                      {e.diagnostico_liberado === false && (
+                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600">🔒</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{e.cnpj || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">

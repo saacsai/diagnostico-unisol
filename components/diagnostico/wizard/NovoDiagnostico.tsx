@@ -30,7 +30,7 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
           ])
           if (emps) await db.empreendimentos.bulkPut(emps as Empreendimento[])
           const comDiagnostico = new Set(((diags as Pick<Diagnostico, 'empreendimento_id'>[]) || []).map(d => d.empreendimento_id))
-          setEmpreendimentos(((emps as Empreendimento[]) || []).filter(e => !comDiagnostico.has(e.id)))
+          setEmpreendimentos(((emps as Empreendimento[]) || []).filter(e => !comDiagnostico.has(e.id) && e.diagnostico_liberado !== false))
           setCarregando(false)
           return
         } catch {
@@ -39,7 +39,7 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
       }
       const [locaisEmp, locaisDiag] = await Promise.all([db.empreendimentos.toArray(), db.diagnosticos.toArray()])
       const comDiagnostico = new Set(locaisDiag.map(d => d.empreendimento_id))
-      setEmpreendimentos(locaisEmp.filter(e => !comDiagnostico.has(e.id)))
+      setEmpreendimentos(locaisEmp.filter(e => !comDiagnostico.has(e.id) && e.diagnostico_liberado !== false))
       setCarregando(false)
     }
     carregar()
