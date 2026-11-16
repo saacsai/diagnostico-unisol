@@ -1,5 +1,43 @@
 # Status — Sistema UNISOL Brasil
 
+## Lote "Marco 0" EcoUni — 6 extensionistas + 40 empreendimentos (2026-11-16)
+
+Pedido formal da Melissa Souza Branco (Coordenação Nacional EcoUni, via e-mail encaminhado pelo
+Luciano): 6 extensionistas de campo do EcoUni Redes Solidárias, cada um responsável pelo
+Diagnóstico Participativo (Marco 0) de uma lista fechada de empreendimentos.
+
+- **5 contas novas** (`perfil=tecnico`, `equipe_projeto.nivel_acesso='extensionista'`, território
+  pelo `projeto_executante_id` da UF — RS/BA usam o Executante próprio, AC cai no Executante
+  "Brasil" porque não tem Estadual constituída no Norte): Francieli de Souza Cunha (RS), Kelvin
+  Alves Dourado (BA), Maicon Silva de Oliveira (BA), Eduarda Cristine Marcelino de França (AC),
+  Jacira da Silva Morais Souza (AC). E-mail de 1º acesso (link de recuperação + link curto,
+  mesmo padrão do lote de 24/10) enviado e confirmado OK pros 5.
+- **Gabriele Ramos Venâncio (SP) já tinha conta** (lote de 24/10) — só recebeu os vínculos dos
+  10 empreendimentos dela, sem novo e-mail (ela já usa o sistema ativamente).
+- **14 empreendimentos novos cadastrados** (13 na Bahia — Kelvin 7, Maicon 6 — + 1 no Acre,
+  "Associação dos Pequenos Produtores Rurais Fronteira", que tinha ficado de fora da importação
+  anterior dos 152). Códigos BA-0019 a BA-0031 + AC-0028, `codigo` gerado automaticamente pelo
+  trigger (migration 21), vinculados ao projeto CooperaMais (`empreendimento_projeto`).
+- **40 vínculos `tecnico_empreendimento_projeto`** criados (atribuição real de responsabilidade,
+  não só nível de acesso territorial) — 1 por empreendimento×extensionista, conforme a planilha
+  exata que a Melissa passou.
+
+**Achado real no caminho**: 2 dos 40 empreendimentos pedidos — **Armazém da Terra** (RS-0001) e
+**APROBIO** (SP-0009) — estavam `diagnostico_liberado=false` desde o lote de 22 "a substituir"
+que a própria Melissa passou via WhatsApp em 05/11 (ver seção acima). Luciano confirmou
+descongelar os 2 e seguir normalmente — provavelmente descuido dela ao montar a lista nova sem
+cruzar com o lote de congelamento. Os 2 foram descongelados antes de vincular.
+
+Tudo rodado direto contra o banco com a service role key (script `.mjs` descartável, não
+commitado — mesmo padrão do lote de convites de 24/10: cria conta via `auth.admin.createUser`,
+`generateLink` tipo `recovery`, link curto em `links_curtos`, envio via SMTP Hostinger). Nenhuma
+chamada à rota HTTP `importar-equipe-ecouni` (que ainda lê de uma planilha Google Sheets e usa o
+modelo antigo de `Regional` solto — ficou obsoleta depois da migration 20; os dados desta vez
+vieram direto do e-mail da Melissa, não de planilha).
+
+**Pendente**: confirmar pra Melissa que os 6 perfis estão ativos e os empreendimentos vinculados
+(ela pediu confirmação explícita no e-mail).
+
 ## Congelar diagnóstico de Filiadas + lote de 22 congeladas (2026-11-06)
 
 `empreendimentos.diagnostico_liberado` (boolean, default true, migration 23) — quando false, a
