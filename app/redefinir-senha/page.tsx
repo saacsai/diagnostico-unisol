@@ -29,10 +29,16 @@ export default function RedefinirSenhaPage() {
 
   useEffect(() => {
     const supabase = getSupabase()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setPronto(true)
-      }
+    // O Supabase não respeita o redirect_to pedido (cai na raiz, ver app/page.tsx) —
+    // chega aqui depois de um 2º salto via window.location.href. Esse salto cria um
+    // client novo nesta página, que carrega a sessão do localStorage (já persistida
+    // pela raiz) e dispara INITIAL_SESSION, não PASSWORD_RECOVERY/SIGNED_IN — sem
+    // checar a sessão em si (não só o nome do evento), ficava travado aqui pra sempre.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setPronto(true)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setPronto(true)
     })
     return () => subscription.unsubscribe()
   }, [])
