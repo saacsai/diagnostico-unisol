@@ -25,6 +25,14 @@ clicado no link antigo e ficado travados, sem nunca definir senha) tiveram o lin
 sucesso. Reenviei link novo pros 5 do lote Marco 0 depois do fix no ar (mesmo texto de
 desculpa+novo link).
 
+**Escopo real era maior**: Luciano trouxe mais 1 reclamação (Gleudiano Silva Rodrigues,
+`gleudianoprof@gmail.com`) — do lote ORIGINAL de 24/10, não do Marco 0. Cruzei todos os 27
+`usuarios.perfil='tecnico'` contra `last_sign_in_at` e achei **8 que nunca logaram desde a
+criação** (6 do lote de 24/10 + 2 do Marco 0 já cobertos): Arildo Mota Lopes, Anne Guiomar de Sena
+Silva, Nelsa Inês Fabian Nespolo, Daniely Sales Guedes, Luciano Marcelo da Costa Borges, além do
+Gleudiano. Mesmo bug, só que de 3 semanas atrás, nunca reportado até agora. Reenviei link novo
+pros 6 (total de 11 pessoas com link novo nesta sessão, contando os 5 do Marco 0).
+
 **Dívida técnica que sobra**: a causa de fundo (Supabase não respeitando `redirect_to`) não foi
 corrigida no painel — só contornada no código duas vezes agora. Vale, numa próxima sessão, conferir
 Authentication → URL Configuration → Redirect URLs desse projeto (`aloumokqafywqntdisen`) e
