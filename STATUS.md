@@ -1,5 +1,36 @@
 # Status — Sistema UNISOL Brasil
 
+## Bug real corrigido: "Verificando link..." travado no 1º acesso (2026-11-18)
+
+Luciano reportou reclamação de "gente" (pelo menos 2 dos 5 extensionistas do lote Marco 0,
+cadastrados 2 dias antes) presa na tela "Verificando link..." do `/redefinir-senha`, sem nunca
+ver o formulário de nova senha.
+
+**Causa raiz, confirmada empiricamente** (gerei um link de recovery de verdade e segui o redirect
+com curl): o Supabase não honra o `redirect_to=.../redefinir-senha` pedido — cai sempre na raiz
+`https://sistema.unisolbrasil.org.br` (sem path), achado que já tinha gerado um contorno em
+22/10 (`app/page.tsx` detecta o evento `PASSWORD_RECOVERY` e dá `window.location.href =
+'/redefinir-senha'`). O problema: esse 2º salto cria uma sessão **nova** do Supabase na página de
+destino, que carrega do localStorage (já persistido pela raiz) e dispara `INITIAL_SESSION` — não
+`PASSWORD_RECOVERY`/`SIGNED_IN`, que era tudo que `/redefinir-senha` escutava. Ficava travado pra
+sempre, mesmo com a sessão de recovery válida já carregada.
+
+**Corrigido** (commit `de28af5`): `/redefinir-senha` passa a checar a sessão em si (`session`
+não-nulo, via `getSession()` + no callback de `onAuthStateChange`), não o nome do evento. Testado
+ponta a ponta com conta descartável (Mailinator) — link → formulário aparece → senha salva →
+redireciona logado pra `/diagnosticos`. Confirmado funcionando.
+
+**Efeito colateral real**: token de recovery é de uso único — Kelvin e Jacira (que já tinham
+clicado no link antigo e ficado travados, sem nunca definir senha) tiveram o link queimado sem
+sucesso. Reenviei link novo pros 5 do lote Marco 0 depois do fix no ar (mesmo texto de
+desculpa+novo link).
+
+**Dívida técnica que sobra**: a causa de fundo (Supabase não respeitando `redirect_to`) não foi
+corrigida no painel — só contornada no código duas vezes agora. Vale, numa próxima sessão, conferir
+Authentication → URL Configuration → Redirect URLs desse projeto (`aloumokqafywqntdisen`) e
+adicionar `https://sistema.unisolbrasil.org.br/**` — mesmo tipo de ajuste já feito no Bertiofertas
+(ver `[[feedback_deploy_vercel]]`/memória do Bertiofertas) — pra eliminar o salto duplo de vez.
+
 ## Lote "Marco 0" EcoUni — 6 extensionistas + 40 empreendimentos (2026-11-16)
 
 Pedido formal da Melissa Souza Branco (Coordenação Nacional EcoUni, via e-mail encaminhado pelo
