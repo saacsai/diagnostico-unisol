@@ -311,4 +311,11 @@ export interface Diagnostico {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  /** Quando o preenchimento bateu 100% pela 1a vez (nunca é limpo depois, mesmo que
+   *  algo seja removido — é o registro histórico do "T" ter sido atingido). */
+  completo_em: string | null
+  /** Quando um admin validou esta versão em nome da diretoria — a partir daqui a
+   *  linha congela (trigger no banco) e a próxima versão já nasce sozinha. */
+  validado_em: string | null
+  validado_por: string | null
 }

@@ -1,25 +1,36 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabase, Empreendimento, Diagnostico } from '@/lib/supabase'
+import { getSupabase, Empreendimento, Diagnostico, Usuario } from '@/lib/supabase'
 import { getDB } from '@/lib/offline/db'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
-import { Drawer } from '@/components/layout/Drawer'
+import { rotuloVersao, validarDiagnostico } from '@/lib/diagnostico/validacao'
 import { SecaoBloco0Identificacao } from '@/components/diagnostico/secoes/SecaoBloco0Identificacao'
+import { RelatorioDiagnostico } from '@/components/diagnostico/relatorio/RelatorioDiagnostico'
 
 export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string }) {
   const [emp, setEmp] = useState<Empreendimento | null>(null)
   const [versoes, setVersoes] = useState<Diagnostico[]>([])
   const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
   const [urlAnexo, setUrlAnexo] = useState<Record<string, string>>({})
+  const [nomesPorUsuario, setNomesPorUsuario] = useState<Record<string, string>>({})
+  const [souAdmin, setSouAdmin] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [iniciando, setIniciando] = useState(false)
-  const [drawer, setDrawer] = useState(false)
+  const [validando, setValidando] = useState(false)
+  const [erroValidacao, setErroValidacao] = useState('')
+  const [relatorioAberto, setRelatorioAberto] = useState<Diagnostico | null>(null)
 
   async function carregar() {
     setCarregando(true)
     const sb = getSupabase()
+    const { data: sessao } = await sb.auth.getSession()
+    if (sessao.session) {
+      const { data: usuarioAtual } = await sb.from('usuarios').select('perfil').eq('id', sessao.session.user.id).single()
+      setSouAdmin((usuarioAtual as Pick<Usuario, 'perfil'> | null)?.perfil === 'admin')
+    }
+
     const { data: dadosEmp } = await sb.from('empreendimentos').select('*').eq('id', empreendimentoId).single()
     setEmp(dadosEmp as Empreendimento)
     // useAutosaveEmpreendimento grava via Dexie .update(), que só funciona se o registro já
@@ -34,6 +45,14 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
       .order('versao', { ascending: false })
     const lista = (diags as Diagnostico[]) || []
     setVersoes(lista)
+
+    const idsValidadores = Array.from(new Set(lista.map(d => d.validado_por).filter((id): id is string => !!id)))
+    if (idsValidadores.length > 0) {
+      const { data: usuariosValidadores } = await sb.from('usuarios').select('id, nome').in('id', idsValidadores)
+      const mapa: Record<string, string> = {}
+      for (const u of (usuariosValidadores as Pick<Usuario, 'id' | 'nome'>[] | null) || []) mapa[u.id] = u.nome
+      setNomesPorUsuario(mapa)
+    }
 
     if (lista.length > 0) {
       const { data: docs } = await sb
@@ -54,6 +73,15 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
     setCarregando(false)
   }
   useEffect(() => { carregar() }, [empreendimentoId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function validar(diagnosticoId: string) {
+    setValidando(true)
+    setErroValidacao('')
+    const resultado = await validarDiagnostico(diagnosticoId)
+    if ('error' in resultado) { setErroValidacao(resultado.error); setValidando(false); return }
+    setValidando(false)
+    await carregar()
+  }
 
   async function alternarCongelamento() {
     if (!emp) return
@@ -132,9 +160,11 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
             <div>
               <p className="text-sm text-gray-900 font-medium">
                 {completude!.pct}% <span className="text-gray-400 font-normal">({completude!.feitas}/{completude!.total})</span>
-                {atual.rotulo_versao ? <span className="text-gray-400 font-normal"> · {atual.rotulo_versao}</span> : null}
+                <span className="text-gray-400 font-normal"> · {rotuloVersao(atual)}</span>
+                {atual.validado_em && (
+                  <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Validado</span>
+                )}
               </p>
-              <p className="text-xs text-gray-400">Status: {atual.status}</p>
               {maturidade?.nivel && (
                 <p className="mt-1.5">
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full"
@@ -144,17 +174,25 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                   </span>
                 </p>
               )}
+              {erroValidacao && <p className="text-xs text-red-600 mt-1">{erroValidacao}</p>}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => window.location.href = `/diagnosticos?id=${atual.id}`}
-                disabled={emp.diagnostico_liberado === false}
-                className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                Editar
-              </button>
-              {completude!.pct === 100 && emp.diagnostico_liberado !== false && (
-                <button onClick={() => setDrawer(true)}
-                  className="text-sm font-medium text-white rounded-lg px-4 py-2" style={{ background: 'var(--primary)' }}>
-                  Atualizar diagnóstico
+              {atual.validado_em ? (
+                <button onClick={() => setRelatorioAberto(atual)}
+                  className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50">
+                  Ver / imprimir
+                </button>
+              ) : (
+                <button onClick={() => window.location.href = `/diagnosticos?id=${atual.id}`}
+                  disabled={emp.diagnostico_liberado === false}
+                  className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Editar
+                </button>
+              )}
+              {completude!.pct === 100 && !atual.validado_em && souAdmin && emp.diagnostico_liberado !== false && (
+                <button onClick={() => validar(atual.id)} disabled={validando}
+                  className="text-sm font-medium text-white rounded-lg px-4 py-2 disabled:opacity-50" style={{ background: 'var(--primary)' }}>
+                  {validando ? 'Validando…' : 'Validar diagnóstico'}
                 </button>
               )}
             </div>
@@ -164,7 +202,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
 
       {versoes.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--primary)' }}>Histórico de atualizações</h2>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--primary)' }}>Linha do tempo</h2>
           <div className="space-y-3">
             {versoes.map(v => {
               const c = calcularCompletude(v, emp, idsComAnexoA.has(v.id))
@@ -172,13 +210,29 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                 <div key={v.id} className="border-b border-gray-50 last:border-0 pb-3 last:pb-0">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-900">
-                      {v.rotulo_versao || `Versão ${v.versao}`} <span className="text-gray-400 font-normal text-xs">— {new Date(v.created_at).toLocaleDateString('pt-BR')}</span>
+                      {rotuloVersao(v)}
+                      {v.validado_em ? (
+                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">Validado</span>
+                      ) : (
+                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Em andamento</span>
+                      )}
                     </p>
                     <span className="text-xs text-gray-500">{c.pct}% ({c.feitas}/{c.total})</span>
                   </div>
+                  <div className="text-xs text-gray-400 mt-1 space-y-0.5">
+                    {v.completo_em && <p>Completo em {new Date(v.completo_em).toLocaleString('pt-BR')}</p>}
+                    {v.validado_em && (
+                      <p>Validado por {(v.validado_por && nomesPorUsuario[v.validado_por]) || 'administrador'} em {new Date(v.validado_em).toLocaleString('pt-BR')}</p>
+                    )}
+                  </div>
                   {v.relato_versao && <p className="text-xs text-gray-500 mt-1">{v.relato_versao}</p>}
                   <div className="flex gap-3 mt-1">
-                    <a href={`/diagnosticos?id=${v.id}`} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>Ver diagnóstico</a>
+                    <button onClick={() => setRelatorioAberto(v)} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>
+                      Ver / imprimir
+                    </button>
+                    {!v.validado_em && (
+                      <a href={`/diagnosticos?id=${v.id}`} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>Editar</a>
+                    )}
                     {urlAnexo[v.id] && (
                       <a href={urlAnexo[v.id]} target="_blank" rel="noreferrer" className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>
                         Relatório anexado
@@ -192,105 +246,15 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
         </div>
       )}
 
-      {atual && (
-        <AtualizarDiagnosticoDrawer
-          aberto={drawer} onFechar={() => setDrawer(false)}
-          empreendimentoId={empreendimentoId} diagnosticoAtual={atual}
-          onAtualizado={novoId => window.location.href = `/diagnosticos?id=${novoId}`}
+      {relatorioAberto && emp && (
+        <RelatorioDiagnostico
+          diagnostico={relatorioAberto}
+          empreendimento={emp}
+          validadoPorNome={(relatorioAberto.validado_por && nomesPorUsuario[relatorioAberto.validado_por]) || null}
+          onFechar={() => setRelatorioAberto(null)}
         />
       )}
+
     </div>
-  )
-}
-
-function AtualizarDiagnosticoDrawer({
-  aberto, onFechar, empreendimentoId, diagnosticoAtual, onAtualizado,
-}: {
-  aberto: boolean
-  onFechar: () => void
-  empreendimentoId: string
-  diagnosticoAtual: Diagnostico
-  onAtualizado: (novoId: string) => void
-}) {
-  const [rotulo, setRotulo] = useState('')
-  const [relato, setRelato] = useState('')
-  const [arquivo, setArquivo] = useState<File | null>(null)
-  const [erro, setErro] = useState('')
-  const [salvando, setSalvando] = useState(false)
-
-  async function salvar(e: React.FormEvent) {
-    e.preventDefault()
-    setErro('')
-    setSalvando(true)
-    const sb = getSupabase()
-    const { data: sessao } = await sb.auth.getSession()
-    const userId = sessao.session?.user.id
-    if (!userId) { setErro('Sessão expirada, faça login de novo.'); setSalvando(false); return }
-
-    const novoId = crypto.randomUUID()
-    const { error: erroDiag } = await sb.from('diagnosticos').insert({
-      id: novoId,
-      empreendimento_id: empreendimentoId,
-      aplicador_id: userId,
-      status: 'rascunho',
-      versao: diagnosticoAtual.versao + 1,
-      rotulo_versao: rotulo || null,
-      relato_versao: relato || null,
-      respostas: diagnosticoAtual.respostas,
-      analise_tecnica: diagnosticoAtual.analise_tecnica,
-    })
-    if (erroDiag) { setErro(erroDiag.message); setSalvando(false); return }
-
-    if (arquivo) {
-      const path = `diagnostico/${novoId}/${crypto.randomUUID()}-${arquivo.name}`
-      const { error: erroUpload } = await sb.storage.from('documentos-institucionais').upload(path, arquivo)
-      if (!erroUpload) {
-        await sb.from('documentos_institucionais').insert({
-          entidade_tipo: 'diagnostico',
-          entidade_id: novoId,
-          tipo_documento: 'relatorio_evolucao',
-          nome_arquivo: arquivo.name,
-          storage_path: path,
-          observacao: relato || null,
-          uploaded_by: userId,
-        })
-      }
-    }
-
-    setSalvando(false)
-    onAtualizado(novoId)
-  }
-
-  return (
-    <Drawer open={aberto} onClose={onFechar} title="Atualizar diagnóstico">
-      <form onSubmit={salvar} className="space-y-4">
-        <p className="text-xs text-gray-400">
-          Cria uma nova versão do diagnóstico deste Filiado (versão {diagnosticoAtual.versao} → {diagnosticoAtual.versao + 1}), a partir das respostas atuais.
-        </p>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Rótulo da versão (ex: T1-2027)</label>
-          <input value={rotulo} onChange={e => setRotulo(e.target.value)} placeholder="T1-2027"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Relato da evolução</label>
-          <textarea rows={3} value={relato} onChange={e => setRelato(e.target.value)}
-            placeholder="O que mudou desde a versão anterior…"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Relatório anexo (opcional)</label>
-          <input type="file" onChange={e => setArquivo(e.target.files?.[0] || null)} className="w-full text-sm" />
-        </div>
-        {erro && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">{erro}</p>}
-        <div className="flex gap-2 pt-2">
-          <button type="button" onClick={onFechar} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
-          <button type="submit" disabled={salvando}
-            className="flex-1 rounded-lg py-2 text-sm font-medium text-white disabled:opacity-50" style={{ background: 'var(--primary)' }}>
-            {salvando ? 'Criando…' : 'Criar nova versão'}
-          </button>
-        </div>
-      </form>
-    </Drawer>
   )
 }

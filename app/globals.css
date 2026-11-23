@@ -21,3 +21,23 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Imprime só o relatório de diagnóstico (aba de linha do tempo), não a UI do app em volta —
+   funciona independente de onde #relatorio-print está no DOM (padrão robusto de "imprimir só
+   este div", sem precisar de rota própria nem de CSS por componente). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #relatorio-print,
+  #relatorio-print * {
+    visibility: visible;
+  }
+  #relatorio-print {
+    position: absolute;
+    inset: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

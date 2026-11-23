@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, UnisolEstadual, Diagnostico, Projeto } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
+import { rotuloVersao } from '@/lib/diagnostico/validacao'
 import { CadastrarFiliadaDrawer } from './CadastrarFiliadaDrawer'
 
 export function FiliadasLista() {
@@ -151,7 +152,7 @@ export function FiliadasLista() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {diag ? (
-                        <>{calcularCompletude(diag, e, idsComAnexoA.has(diag.id)).pct}%{diag.rotulo_versao ? <span className="text-gray-400"> · {diag.rotulo_versao}</span> : null}</>
+                        <>{calcularCompletude(diag, e, idsComAnexoA.has(diag.id)).pct}% <span className="text-gray-400"> · {rotuloVersao(diag)}</span></>
                       ) : (
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Não iniciado</span>
                       )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, Diagnostico, EmpreendimentoProjeto } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { rotuloVersao } from '@/lib/diagnostico/validacao'
 import { Drawer } from '@/components/layout/Drawer'
 
 type Vinculo = EmpreendimentoProjeto & { empreendimentos: Empreendimento | null }
@@ -97,7 +98,7 @@ export function FiliadosVinculados({ projetoId }: { projetoId: string }) {
                     <td className="px-3 py-2 font-medium text-gray-900">{nome}</td>
                     <td className="px-3 py-2 text-gray-500">{emp?.municipio}{emp?.uf ? `/${emp.uf}` : ''}</td>
                     <td className="px-3 py-2 text-gray-600">
-                      {pct}% <span className="text-gray-400">({feitas}/{total}){diag.rotulo_versao ? ` · ${diag.rotulo_versao}` : ''}</span>
+                      {pct}% <span className="text-gray-400">({feitas}/{total}) · {rotuloVersao(diag)}</span>
                     </td>
                   </tr>
                 )
