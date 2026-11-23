@@ -1,5 +1,28 @@
 # Status — Sistema UNISOL Brasil
 
+## Botão de envio vai pro rodapé da lista de seções — CONCLUÍDO (2026-11-23, mesmo dia)
+
+Ajuste fino depois do teste real: Luciano achou mais didático ter o botão "Enviar para validação"
+logo depois da lista de seções (onde já vê todos os tickets verdinhos), sempre visível — não só
+dentro do conteúdo do Anexo B, que exigia navegar até lá especificamente (causa real do "não
+estou achando o botão" de antes).
+
+`SidebarSecoes` ganhou um prop `rodape` (ReactNode opcional), renderizado logo depois da lista de
+seções. `DiagnosticoWizardShell` monta esse bloco (% preenchido, rótulo T{n}, badge de status,
+botões Enviar/Cancelar) uma vez só e passa pra lá — lógica de enviar/cancelar continua toda no
+shell, sem acoplar o componente de sidebar a Supabase/RPC.
+
+Testado ao vivo em produção: abri o diagnóstico da Associação Renascer direto na primeira seção
+(Controle da aplicação) — antes não mostraria nada ali; agora mostra "100% preenchido · T0" +
+"Aguardando validação da diretoria" + botão "Cancelar envio" (esse diagnóstico específico já
+tinha sido enviado por ele mesmo, testando). Commit `bccee92`.
+
+**Nota de processo**: ao testar, a aba carregou com a sessão real do Luciano já ativa no Chrome
+(não a conta de teste descartável que eu tinha acabado de criar) — fechei a aba sem clicar em
+nenhuma ação, só confirmei visualmente. Lição: ao testar este app específico via browser
+automation, sempre checar quem aparece como usuário logado no canto inferior esquerdo antes de
+clicar em qualquer botão de ação — sessão pode já estar ativa de uso real anterior no mesmo
+Chrome.
 ## Ordenação por fase + badge nas listagens — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Último ajuste da leva de hoje: `/filiadas` e `/diagnosticos` agora ordenam por fase do
