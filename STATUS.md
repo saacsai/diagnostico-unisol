@@ -1,5 +1,39 @@
 # Status — Sistema UNISOL Brasil
 
+Última atualização: 2026-11-23
+
+## 📍 Como funciona a validação hoje (resumo — o modelo mudou várias vezes em 2026-11-23)
+
+As 5 entradas abaixo (mesma data) registram a evolução passo a passo da conversa com o Luciano —
+útil pra entender o porquê de cada decisão, mas quem só precisa saber **como está funcionando
+agora** pode ler só este resumo:
+
+1. Técnico edita o diagnóstico à vontade (autosave) — nenhuma edição isolada vira versão nova.
+2. Quando bate 100% das 17 seções (inclui ≥1 documento no Anexo A), `completo_em` é gravado
+   automaticamente (trigger no banco) — é só um registro histórico, não trava nada ainda.
+3. Técnico (ou admin) decide que aquele ciclo está pronto — ex. periodicidade trimestral
+   combinada com a diretoria — e clica **"Enviar para validação"** (confirmação via `confirm()`).
+   Aparece no rodapé da lista de seções do wizard (`/diagnosticos?id=...`, sempre visível, não só
+   no Anexo B) e também em `/filiadas/[id]`. Isso grava `enviado_em`/`enviado_por` e **trava
+   edição** (trigger bloqueia UPDATE em `respostas`/`analise_tecnica`).
+4. Admin vê a fila em `/dashboard` → "Aguardando sua validação (N)" — não tem e-mail/WhatsApp,
+   só essa lista por enquanto. Clica na Filiada, revê, e clica **"Validar diagnóstico"** (só
+   `perfil='admin'`).
+5. Validar congela a versão como `T{n}` (rótulo automático, `n = versao - 1`) e **já cria sozinho
+   o próximo rascunho** (respostas copiadas) — o técnico não precisa clicar em nada pra continuar.
+6. Se precisar corrigir algo antes da diretoria decidir, **"Cancelar envio"** destrava sem criar
+   versão nenhuma.
+7. Listagens (`/filiadas`, `/diagnosticos`) ordenam **Validado → Em validação → Rascunho**,
+   alfabético dentro de cada grupo. Cada versão tem um botão "Ver / imprimir" (relatório
+   somente-leitura, `window.print()` pra PDF).
+
+Tabelas/funções envolvidas: `diagnosticos.completo_em`/`enviado_em`/`enviado_por`/`validado_em`/
+`validado_por` (migrations 24 e 25); RPCs `enviar_para_validacao()`, `cancelar_envio_validacao()`,
+`validar_diagnostico()`; helpers em `lib/diagnostico/validacao.ts`.
+
+**Pendente (fase 2, não construída)**: aviso por e-mail/WhatsApp quando um diagnóstico é enviado
+(hoje só a lista no dashboard); aba de relatório de evolução (gráfico T0→T1→T2 de pontuação).
+
 ## Botão de envio vai pro rodapé da lista de seções — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Ajuste fino depois do teste real: Luciano achou mais didático ter o botão "Enviar para validação"
@@ -23,6 +57,7 @@ nenhuma ação, só confirmei visualmente. Lição: ao testar este app específi
 automation, sempre checar quem aparece como usuário logado no canto inferior esquerdo antes de
 clicar em qualquer botão de ação — sessão pode já estar ativa de uso real anterior no mesmo
 Chrome.
+
 ## Ordenação por fase + badge nas listagens — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Último ajuste da leva de hoje: `/filiadas` e `/diagnosticos` agora ordenam por fase do
@@ -38,6 +73,7 @@ maturidade do negócio (que já aparece na página de detalhe da própria Filiad
 Testado com dados descartáveis — incluindo um teste deliberadamente rigoroso com nomes
 alfabeticamente invertidos (o validado chamado "Z", o rascunho chamado "A") pra confirmar que a
 fase realmente vence o alfabeto, não o contrário. Commit `6b29b6e`.
+
 ## Botão "Enviar para validação" também no wizard (Anexo B) — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Pedido do Luciano depois de testar: manter o botão em `/filiadas/[id]` (ficou), mas também
@@ -54,6 +90,7 @@ sinal).
 Testado ao vivo em produção com conta admin descartável: abri o diagnóstico 100% completo da
 Associação Renascer, cliquei na seção Anexo B, confirmei "100% preenchido · T0" + botão "Enviar
 para validação" aparecendo certinho logo abaixo do conteúdo da seção. Commit `e47f4df`.
+
 ## Fila "Aguardando sua validação" no dashboard do admin — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Luciano perguntou "como isso chega pra nós, admin?" depois de ver o fluxo de envio/validação —
@@ -88,6 +125,7 @@ status morto.
 
 Testado com dados descartáveis (diagnóstico criado já com `enviado_em` preenchido, confirmado que
 a query da fila retorna certo). Commit `a876fd7`.
+
 ## Técnico envia pra validação antes da diretoria validar — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Refinamento do modelo de validação T0/T1/T2 (sessão anterior, mesmo dia): Luciano notou que, como
@@ -120,6 +158,7 @@ apagados via REST, nunca dado real): admin não valida sem envio prévio; ediç�
 enviado (antes mesmo de validado); cancelar envio destrava de verdade, edição volta a funcionar;
 ciclo completo enviar→validar→T0 congela→T1 nasce sozinha confirmado; reenvio de versão já
 validada rejeitado. Commit `3709558`.
+
 ## Linha do tempo T0/T1/T2 com validação da diretoria — CONCLUÍDO (2026-11-23)
 
 Pedido do Luciano: diretoria precisa validar diagnósticos 100% preenchidos, e precisava de um
@@ -162,6 +201,7 @@ Nenhum resíduo deixado em produção. Commit `8e4aa5a`.
 (gráfico/tabela T0→T1→T2 de pontuação e classificação ao longo do tempo) — fica fácil de construir
 depois, já que cada T é um snapshot completo e a pontuação já é calculável (`lib/diagnostico/
 pontuacao.ts`).
+
 ## Bug real corrigido: "Verificando link..." travado no 1º acesso (2026-11-18)
 
 Luciano reportou reclamação de "gente" (pelo menos 2 dos 5 extensionistas do lote Marco 0,
