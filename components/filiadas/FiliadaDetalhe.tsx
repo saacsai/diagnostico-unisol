@@ -5,7 +5,7 @@ import { getSupabase, Empreendimento, Diagnostico, Usuario } from '@/lib/supabas
 import { getDB } from '@/lib/offline/db'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
 import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
-import { rotuloVersao, validarDiagnostico } from '@/lib/diagnostico/validacao'
+import { rotuloVersao, validarDiagnostico, enviarParaValidacao, cancelarEnvioValidacao } from '@/lib/diagnostico/validacao'
 import { SecaoBloco0Identificacao } from '@/components/diagnostico/secoes/SecaoBloco0Identificacao'
 import { RelatorioDiagnostico } from '@/components/diagnostico/relatorio/RelatorioDiagnostico'
 
@@ -15,12 +15,15 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
   const [idsComAnexoA, setIdsComAnexoA] = useState<Set<string>>(new Set())
   const [urlAnexo, setUrlAnexo] = useState<Record<string, string>>({})
   const [nomesPorUsuario, setNomesPorUsuario] = useState<Record<string, string>>({})
-  const [souAdmin, setSouAdmin] = useState(false)
+  const [meuPerfil, setMeuPerfil] = useState<Usuario['perfil'] | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [iniciando, setIniciando] = useState(false)
-  const [validando, setValidando] = useState(false)
-  const [erroValidacao, setErroValidacao] = useState('')
+  const [processando, setProcessando] = useState(false)
+  const [erroAcao, setErroAcao] = useState('')
   const [relatorioAberto, setRelatorioAberto] = useState<Diagnostico | null>(null)
+
+  const souAdmin = meuPerfil === 'admin'
+  const podeSubmeter = meuPerfil === 'tecnico' || meuPerfil === 'admin'
 
   async function carregar() {
     setCarregando(true)
@@ -28,7 +31,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
     const { data: sessao } = await sb.auth.getSession()
     if (sessao.session) {
       const { data: usuarioAtual } = await sb.from('usuarios').select('perfil').eq('id', sessao.session.user.id).single()
-      setSouAdmin((usuarioAtual as Pick<Usuario, 'perfil'> | null)?.perfil === 'admin')
+      setMeuPerfil((usuarioAtual as Pick<Usuario, 'perfil'> | null)?.perfil ?? null)
     }
 
     const { data: dadosEmp } = await sb.from('empreendimentos').select('*').eq('id', empreendimentoId).single()
@@ -46,11 +49,13 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
     const lista = (diags as Diagnostico[]) || []
     setVersoes(lista)
 
-    const idsValidadores = Array.from(new Set(lista.map(d => d.validado_por).filter((id): id is string => !!id)))
-    if (idsValidadores.length > 0) {
-      const { data: usuariosValidadores } = await sb.from('usuarios').select('id, nome').in('id', idsValidadores)
+    const idsPessoas = Array.from(new Set(
+      lista.flatMap(d => [d.validado_por, d.enviado_por]).filter((id): id is string => !!id)
+    ))
+    if (idsPessoas.length > 0) {
+      const { data: usuariosNomeados } = await sb.from('usuarios').select('id, nome').in('id', idsPessoas)
       const mapa: Record<string, string> = {}
-      for (const u of (usuariosValidadores as Pick<Usuario, 'id' | 'nome'>[] | null) || []) mapa[u.id] = u.nome
+      for (const u of (usuariosNomeados as Pick<Usuario, 'id' | 'nome'>[] | null) || []) mapa[u.id] = u.nome
       setNomesPorUsuario(mapa)
     }
 
@@ -75,11 +80,31 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
   useEffect(() => { carregar() }, [empreendimentoId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function validar(diagnosticoId: string) {
-    setValidando(true)
-    setErroValidacao('')
+    setProcessando(true)
+    setErroAcao('')
     const resultado = await validarDiagnostico(diagnosticoId)
-    if ('error' in resultado) { setErroValidacao(resultado.error); setValidando(false); return }
-    setValidando(false)
+    if ('error' in resultado) { setErroAcao(resultado.error); setProcessando(false); return }
+    setProcessando(false)
+    await carregar()
+  }
+
+  async function enviar(diagnosticoId: string) {
+    if (!confirm('Ao atualizar o diagnóstico, as mudanças serão encaminhadas para validação da diretoria. Confirma a atualização?')) return
+    setProcessando(true)
+    setErroAcao('')
+    const resultado = await enviarParaValidacao(diagnosticoId)
+    if ('error' in resultado) { setErroAcao(resultado.error); setProcessando(false); return }
+    setProcessando(false)
+    await carregar()
+  }
+
+  async function cancelarEnvio(diagnosticoId: string) {
+    if (!confirm('Cancelar o envio? O diagnóstico volta a ficar editável, sem gerar nenhuma versão.')) return
+    setProcessando(true)
+    setErroAcao('')
+    const resultado = await cancelarEnvioValidacao(diagnosticoId)
+    if ('error' in resultado) { setErroAcao(resultado.error); setProcessando(false); return }
+    setProcessando(false)
     await carregar()
   }
 
@@ -161,9 +186,11 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
               <p className="text-sm text-gray-900 font-medium">
                 {completude!.pct}% <span className="text-gray-400 font-normal">({completude!.feitas}/{completude!.total})</span>
                 <span className="text-gray-400 font-normal"> · {rotuloVersao(atual)}</span>
-                {atual.validado_em && (
+                {atual.validado_em ? (
                   <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Validado</span>
-                )}
+                ) : atual.enviado_em ? (
+                  <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação da diretoria</span>
+                ) : null}
               </p>
               {maturidade?.nivel && (
                 <p className="mt-1.5">
@@ -174,10 +201,10 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                   </span>
                 </p>
               )}
-              {erroValidacao && <p className="text-xs text-red-600 mt-1">{erroValidacao}</p>}
+              {erroAcao && <p className="text-xs text-red-600 mt-1">{erroAcao}</p>}
             </div>
             <div className="flex gap-2">
-              {atual.validado_em ? (
+              {atual.validado_em || atual.enviado_em ? (
                 <button onClick={() => setRelatorioAberto(atual)}
                   className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50">
                   Ver / imprimir
@@ -189,10 +216,22 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                   Editar
                 </button>
               )}
-              {completude!.pct === 100 && !atual.validado_em && souAdmin && emp.diagnostico_liberado !== false && (
-                <button onClick={() => validar(atual.id)} disabled={validando}
+              {!atual.validado_em && atual.enviado_em && podeSubmeter && (
+                <button onClick={() => cancelarEnvio(atual.id)} disabled={processando}
+                  className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                  Cancelar envio
+                </button>
+              )}
+              {completude!.pct === 100 && !atual.enviado_em && !atual.validado_em && podeSubmeter && emp.diagnostico_liberado !== false && (
+                <button onClick={() => enviar(atual.id)} disabled={processando}
+                  className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                  {processando ? 'Enviando…' : 'Atualizar diagnóstico'}
+                </button>
+              )}
+              {atual.enviado_em && !atual.validado_em && souAdmin && (
+                <button onClick={() => validar(atual.id)} disabled={processando}
                   className="text-sm font-medium text-white rounded-lg px-4 py-2 disabled:opacity-50" style={{ background: 'var(--primary)' }}>
-                  {validando ? 'Validando…' : 'Validar diagnóstico'}
+                  {processando ? 'Validando…' : 'Validar diagnóstico'}
                 </button>
               )}
             </div>
@@ -213,14 +252,19 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                       {rotuloVersao(v)}
                       {v.validado_em ? (
                         <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">Validado</span>
+                      ) : v.enviado_em ? (
+                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação</span>
                       ) : (
-                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Em andamento</span>
+                        <span className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">Em andamento</span>
                       )}
                     </p>
                     <span className="text-xs text-gray-500">{c.pct}% ({c.feitas}/{c.total})</span>
                   </div>
                   <div className="text-xs text-gray-400 mt-1 space-y-0.5">
                     {v.completo_em && <p>Completo em {new Date(v.completo_em).toLocaleString('pt-BR')}</p>}
+                    {v.enviado_em && (
+                      <p>Enviado por {(v.enviado_por && nomesPorUsuario[v.enviado_por]) || 'técnico'} em {new Date(v.enviado_em).toLocaleString('pt-BR')}</p>
+                    )}
                     {v.validado_em && (
                       <p>Validado por {(v.validado_por && nomesPorUsuario[v.validado_por]) || 'administrador'} em {new Date(v.validado_em).toLocaleString('pt-BR')}</p>
                     )}
@@ -230,7 +274,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
                     <button onClick={() => setRelatorioAberto(v)} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>
                       Ver / imprimir
                     </button>
-                    {!v.validado_em && (
+                    {!v.validado_em && !v.enviado_em && (
                       <a href={`/diagnosticos?id=${v.id}`} className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>Editar</a>
                     )}
                     {urlAnexo[v.id] && (
@@ -250,6 +294,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
         <RelatorioDiagnostico
           diagnostico={relatorioAberto}
           empreendimento={emp}
+          enviadoPorNome={(relatorioAberto.enviado_por && nomesPorUsuario[relatorioAberto.enviado_por]) || null}
           validadoPorNome={(relatorioAberto.validado_por && nomesPorUsuario[relatorioAberto.validado_por]) || null}
           onFechar={() => setRelatorioAberto(null)}
         />

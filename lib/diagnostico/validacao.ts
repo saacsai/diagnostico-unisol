@@ -13,3 +13,17 @@ export async function validarDiagnostico(diagnosticoId: string): Promise<{ novoI
   if (error) return { error: error.message }
   return { novoId: data as string }
 }
+
+export async function enviarParaValidacao(diagnosticoId: string): Promise<{ ok: true } | { error: string }> {
+  const sb = getSupabase()
+  const { error } = await sb.rpc('enviar_para_validacao', { p_diagnostico_id: diagnosticoId })
+  if (error) return { error: error.message }
+  return { ok: true }
+}
+
+export async function cancelarEnvioValidacao(diagnosticoId: string): Promise<{ ok: true } | { error: string }> {
+  const sb = getSupabase()
+  const { error } = await sb.rpc('cancelar_envio_validacao', { p_diagnostico_id: diagnosticoId })
+  if (error) return { error: error.message }
+  return { ok: true }
+}

@@ -82,11 +82,12 @@ function fmtDataHora(iso: string | null): string {
 }
 
 export function RelatorioDiagnostico({
-  diagnostico, empreendimento, validadoPorNome, onFechar,
+  diagnostico, empreendimento, enviadoPorNome, validadoPorNome, onFechar,
 }: {
   diagnostico: Diagnostico
   empreendimento: Empreendimento
-  /** Nome de quem validou (join feito por quem chama — este componente não faz query própria). */
+  /** Nome de quem enviou/validou (join feito por quem chama — este componente não faz query própria). */
+  enviadoPorNome: string | null
   validadoPorNome: string | null
   onFechar: () => void
 }) {
@@ -125,10 +126,15 @@ export function RelatorioDiagnostico({
         <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm space-y-0.5">
           <p><span className="font-semibold">{rotuloVersao(diagnostico)}</span> {diagnostico.relato_versao ? `— ${diagnostico.relato_versao}` : ''}</p>
           <p className="text-gray-500">Preenchimento completo em: {fmtDataHora(diagnostico.completo_em)}</p>
+          {diagnostico.enviado_em && (
+            <p className="text-gray-500">Enviado para validação por {enviadoPorNome || 'técnico'} em {fmtDataHora(diagnostico.enviado_em)}</p>
+          )}
           <p className="text-gray-500">
             {diagnostico.validado_em
               ? `Validado por ${validadoPorNome || 'administrador'} em ${fmtDataHora(diagnostico.validado_em)}`
-              : 'Ainda não validado pela diretoria'}
+              : diagnostico.enviado_em
+                ? 'Aguardando validação da diretoria'
+                : 'Ainda não enviado para validação'}
           </p>
           {pontuacao.media !== null && (
             <p className="text-gray-500">

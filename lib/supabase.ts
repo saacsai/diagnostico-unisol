@@ -314,6 +314,12 @@ export interface Diagnostico {
   /** Quando o preenchimento bateu 100% pela 1a vez (nunca é limpo depois, mesmo que
    *  algo seja removido — é o registro histórico do "T" ter sido atingido). */
   completo_em: string | null
+  /** Quando o técnico decidiu que este ciclo de edições está pronto e formalizou o envio pra
+   *  diretoria (botão "Atualizar diagnóstico") — a partir daqui a edição trava até a diretoria
+   *  validar ou o envio ser cancelado. Diferente de completo_em: 100% é fato mecânico, enviado_em
+   *  é decisão humana do técnico sobre QUANDO aquele estado vira um checkpoint formal. */
+  enviado_em: string | null
+  enviado_por: string | null
   /** Quando um admin validou esta versão em nome da diretoria — a partir daqui a
    *  linha congela (trigger no banco) e a próxima versão já nasce sozinha. */
   validado_em: string | null

@@ -93,6 +93,8 @@ export function NovoDiagnostico({ onCancelar }: { onCancelar: () => void }) {
       updated_at: agora,
       deleted_at: null,
       completo_em: null,
+      enviado_em: null,
+      enviado_por: null,
       validado_em: null,
       validado_por: null,
       _op: 'insert',
