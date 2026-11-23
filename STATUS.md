@@ -1,5 +1,20 @@
 # Status — Sistema UNISOL Brasil
 
+## Ordenação por fase + badge nas listagens — CONCLUÍDO (2026-11-23, mesmo dia)
+
+Último ajuste da leva de hoje: `/filiadas` e `/diagnosticos` agora ordenam por fase do
+diagnóstico — **Validado primeiro, depois Em validação, depois Rascunho**, alfabético dentro de
+cada grupo (ordem explícita do Luciano). Novo helper compartilhado `lib/diagnostico/validacao.ts`
+(`faseDiagnostico`/`compararPorFaseENome`/`FASE_LABEL`/`FASE_COR`) — mesmo vocabulário e cor nas
+duas listagens.
+
+Em `/filiadas`, a coluna "Maturidade comercial" virou **"Fase do diagnóstico"** — fazia mais
+sentido mostrar onde o diagnóstico está no ciclo de preenchimento/validação do que a régua de
+maturidade do negócio (que já aparece na página de detalhe da própria Filiada).
+
+Testado com dados descartáveis — incluindo um teste deliberadamente rigoroso com nomes
+alfabeticamente invertidos (o validado chamado "Z", o rascunho chamado "A") pra confirmar que a
+fase realmente vence o alfabeto, não o contrário. Commit `6b29b6e`.
 ## Botão "Enviar para validação" também no wizard (Anexo B) — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Pedido do Luciano depois de testar: manter o botão em `/filiadas/[id]` (ficou), mas também
