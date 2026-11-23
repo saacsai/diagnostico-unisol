@@ -1,5 +1,47 @@
 # Status — Sistema UNISOL Brasil
 
+## Linha do tempo T0/T1/T2 com validação da diretoria — CONCLUÍDO (2026-11-23)
+
+Pedido do Luciano: diretoria precisa validar diagnósticos 100% preenchidos, e precisava de um
+jeito de saber se algo foi alterado depois disso, além de uma aba de relatório/PDF. Desenhado em
+conversa (ver `[[project_diagnostico_unisol]]` na memória pro racional completo da discussão) e
+construído na mesma sessão — migration `supabase_migration_24_validacao_diagnostico.sql`:
+
+- `diagnosticos.completo_em` — grava a primeira vez que o preenchimento bateu 100%, via trigger
+  (cobre tanto edição de `respostas`/`analise_tecnica` quanto upload do Anexo A, que não passa
+  por UPDATE na própria linha).
+- `diagnosticos.validado_em`/`validado_por` — quando e quem (só `perfil='admin'`, decisão
+  2026-11-23) validou.
+- Validar = função `validar_diagnostico()` (RPC, atômica): congela a versão atual (rótulo
+  automático T0/T1/T2... = `versao-1`) e já nasce sozinho o próximo rascunho, com as respostas
+  copiadas — técnico não precisa clicar em nada pra continuar.
+- Trigger trava qualquer edição de `respostas`/`analise_tecnica` numa versão já validada — a
+  única forma de mudar algo é a próxima versão (já existe automaticamente).
+- `/filiadas/[id]`: botão "Validar diagnóstico" (só admin, só com 100%), "Editar" vira
+  "Ver / imprimir" quando validado, linha do tempo mostra cada T com os dois carimbos (quando
+  completou + quem validou e quando).
+- **Botão manual "Atualizar diagnóstico" removido** — ficou redundante, validar já cria a próxima
+  versão sozinho.
+- Relatório novo (`components/diagnostico/relatorio/RelatorioDiagnostico.tsx`) — somente leitura,
+  todas as 17 seções, abre em tela cheia, botão "Imprimir / Salvar PDF" via `window.print()` (CSS
+  dedicado em `globals.css`, `#relatorio-print` — nenhuma lib nova instalada).
+
+**Limitação conhecida e aceita**: não existe dicionário de rótulo humano por campo do formulário
+(só existe como tipo TypeScript em `lib/diagnostico/schema.ts`) — o relatório mostra o nome do
+campo "humanizado" (`participacao_quadro_social` → "Participacao quadro social"), legível mas não
+é o texto exato da pergunta original. Se algum dia valer o esforço de um dicionário chave→pergunta
+de verdade, dá pra trocar sem mexer no resto do componente.
+
+**Testado de ponta a ponta com dados 100% descartáveis** (empreendimento, 2 usuários — admin e
+técnico —, diagnóstico de teste, criados e apagados via REST com service role key, nunca tocando
+dado real): validação gera T0+T1 corretos com os carimbos certos; tentar editar T0 validada é
+bloqueada pelo trigger; validar duas vezes é rejeitado; técnico (não-admin) não consegue validar.
+Nenhum resíduo deixado em produção. Commit `8e4aa5a`.
+
+**Pendente, fase 2 (não construída ainda, por decisão de escopo)**: aba de relatório de evolução
+(gráfico/tabela T0→T1→T2 de pontuação e classificação ao longo do tempo) — fica fácil de construir
+depois, já que cada T é um snapshot completo e a pontuação já é calculável (`lib/diagnostico/
+pontuacao.ts`).
 ## Bug real corrigido: "Verificando link..." travado no 1º acesso (2026-11-18)
 
 Luciano reportou reclamação de "gente" (pelo menos 2 dos 5 extensionistas do lote Marco 0,
