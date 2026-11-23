@@ -3,12 +3,15 @@
 import { SECOES } from '@/lib/diagnostico/secoesConfig'
 
 export function SidebarSecoes({
-  ativa, onSelecionar, completas, perfilUsuario,
+  ativa, onSelecionar, completas, perfilUsuario, rodape,
 }: {
   ativa: string
   onSelecionar: (id: string) => void
   completas: Record<string, boolean>
   perfilUsuario: string
+  /** Status de envio/validação + botão — fica logo depois da última seção da lista, onde o
+   *  técnico já viu todos os tickets verdinhos e é o ponto natural de "pronto, posso enviar". */
+  rodape?: React.ReactNode
 }) {
   return (
     <nav className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-200 bg-white md:h-full overflow-y-auto">
@@ -32,6 +35,7 @@ export function SidebarSecoes({
             </button>
           )
         })}
+        {rodape && <div className="w-full md:border-t md:border-gray-100 p-3 flex-shrink-0">{rodape}</div>}
       </div>
     </nav>
   )

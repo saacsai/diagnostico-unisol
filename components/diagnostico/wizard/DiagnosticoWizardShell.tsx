@@ -182,6 +182,37 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   const perfilUsuario = usuario?.perfil ?? 'aplicador'
   const podeSubmeter = perfilUsuario === 'tecnico' || perfilUsuario === 'admin'
 
+  // Fica no rodapé da lista de seções (depois do último ticket verdinho) — ponto mais didático
+  // de "terminei, posso enviar" do que escondido dentro do conteúdo do Anexo B (Luciano, 2026-11-23).
+  const rodapeEnvio = (
+    <div>
+      <p className="text-xs text-gray-900 font-medium">
+        {pct}% preenchido <span className="text-gray-400 font-normal">· {rotuloVersao(diagnostico)}</span>
+      </p>
+      {diagnostico.validado_em ? (
+        <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Validado</span>
+      ) : diagnostico.enviado_em ? (
+        <span className="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação da diretoria</span>
+      ) : null}
+      {erroEnvio && <p className="text-xs text-red-600 mt-1">{erroEnvio}</p>}
+      <div className="flex flex-col gap-2 mt-2">
+        {!diagnostico.validado_em && diagnostico.enviado_em && podeSubmeter && (
+          <button onClick={cancelarEnvioDiagnostico} disabled={processandoEnvio}
+            className="text-xs font-medium rounded-lg px-3 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+            Cancelar envio
+          </button>
+        )}
+        {pct === 100 && !diagnostico.enviado_em && !diagnostico.validado_em && podeSubmeter && (
+          <button onClick={enviarDiagnostico} disabled={processandoEnvio || !estaOnline()}
+            title={!estaOnline() ? 'Precisa de conexão pra enviar' : undefined}
+            className="text-xs font-medium rounded-lg px-3 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+            {processandoEnvio ? 'Enviando…' : 'Enviar para validação'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col">
       <header className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 bg-white flex-shrink-0">
@@ -198,7 +229,7 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
       </header>
 
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-        <SidebarSecoes ativa={secaoId} onSelecionar={setSecaoId} completas={completas} perfilUsuario={perfilUsuario} />
+        <SidebarSecoes ativa={secaoId} onSelecionar={setSecaoId} completas={completas} perfilUsuario={perfilUsuario} rodape={rodapeEnvio} />
 
         {/* pb-[88px] reserva espaço pra MobileTabBar (56px + respiro) não cobrir o fim do
             conteúdo ao rolar — a barra é fixed, então quem precisa da folga é a área de
@@ -222,35 +253,6 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
                 setRespostaSecao: atualizarSecaoRespostas,
                 setAnaliseSecao: atualizarSecaoAnalise,
               })
-            )}
-
-            {cfg.id === 'anexoB' && (
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-900 font-medium">
-                  {pct}% preenchido <span className="text-gray-400 font-normal">· {rotuloVersao(diagnostico)}</span>
-                  {diagnostico.validado_em ? (
-                    <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Validado</span>
-                  ) : diagnostico.enviado_em ? (
-                    <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação da diretoria</span>
-                  ) : null}
-                </p>
-                {erroEnvio && <p className="text-xs text-red-600 mt-1">{erroEnvio}</p>}
-                <div className="flex gap-2 mt-2">
-                  {!diagnostico.validado_em && diagnostico.enviado_em && podeSubmeter && (
-                    <button onClick={cancelarEnvioDiagnostico} disabled={processandoEnvio}
-                      className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                      Cancelar envio
-                    </button>
-                  )}
-                  {pct === 100 && !diagnostico.enviado_em && !diagnostico.validado_em && podeSubmeter && (
-                    <button onClick={enviarDiagnostico} disabled={processandoEnvio || !estaOnline()}
-                      title={!estaOnline() ? 'Precisa de conexão pra enviar' : undefined}
-                      className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                      {processandoEnvio ? 'Enviando…' : 'Enviar para validação'}
-                    </button>
-                  )}
-                </div>
-              </div>
             )}
           </div>
         </main>
