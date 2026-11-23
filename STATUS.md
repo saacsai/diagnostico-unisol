@@ -1,5 +1,39 @@
 # Status — Sistema UNISOL Brasil
 
+## Fila "Aguardando sua validação" no dashboard do admin — CONCLUÍDO (2026-11-23, mesmo dia)
+
+Luciano perguntou "como isso chega pra nós, admin?" depois de ver o fluxo de envio/validação —
+resposta honesta na hora: não chegava, não tinha aviso nenhum, só dava pra saber entrando
+manualmente na Filiada. Com 152 Filiadas, inviável. Luciano escolheu lista no sistema (não
+e-mail, por ora) via `AskUserQuestion`.
+
+- `DashboardAdmin` ganha seção "Aguardando sua validação (N)" — todos os diagnósticos com
+  `enviado_em` preenchido e `validado_em` nulo, ordenados por mais antigo primeiro, link direto
+  pra cada Filiada. `lib/dashboard/queries.ts`: `carregarAguardandoValidacao()` (nova) junta com
+  `empreendimentos` (nome/município/UF — os campos snapshot em `diagnosticos` nunca são escritos
+  de verdade, confirmado) e `usuarios` (nome de quem enviou).
+
+**Dois bugs reais achados e corrigidos no caminho, sem relação direta com o pedido**:
+1. **Achado ao investigar "não vejo o botão de atualizar"**: 2 diagnósticos já genuinamente 100%
+   completos em produção (desde antes da migration 24 existir) estavam com `completo_em` nulo —
+   ninguém tinha editado nada neles depois da migration pra disparar o cálculo. Corrigido via
+   backfill direto (REST, service role) com a data de hoje como marco (não tem como saber a data
+   histórica real). Não é bug recorrente — só afeta diagnósticos que bateram 100% ANTES da
+   migration 24 e não tiveram nenhuma escrita depois; daqui pra frente o trigger cobre tudo.
+2. **`diagnosticos.status` nunca é escrito pelo app de verdade** (sempre `'rascunho'`, confirmado:
+   41/41 diagnósticos reais em produção) — as métricas "Diagnósticos concluídos"/"em aberto" do
+   dashboard (admin em `lib/dashboard/queries.ts`, técnico em `lib/dashboard/tecnicoQueries.ts`)
+   usavam esse campo morto e sempre mostravam números sem sentido (concluídos sempre 0). Trocado
+   por `validado_em`, que agora é a fonte de verdade real desde a migration 24/25.
+
+**Efeito colateral corrigido também**: `ListaDiagnosticos` (`/diagnosticos`, lista geral) mandava
+QUALQUER linha clicada pro wizard de edição, mesmo diagnóstico já enviado/validado — isso ia dar
+erro de sync confuso pelo trigger de trava. Agora detecta e manda pra `/filiadas/[id]` nesse caso;
+ganhou também o mesmo badge de 3 estados (Em andamento/Aguardando validação/Validado) em vez do
+status morto.
+
+Testado com dados descartáveis (diagnóstico criado já com `enviado_em` preenchido, confirmado que
+a query da fila retorna certo). Commit `a876fd7`.
 ## Técnico envia pra validação antes da diretoria validar — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Refinamento do modelo de validação T0/T1/T2 (sessão anterior, mesmo dia): Luciano notou que, como
