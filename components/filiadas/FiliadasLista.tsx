@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, Empreendimento, UnisolEstadual, Diagnostico, Projeto } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
-import { calcularMaturidadeComercial, MATURIDADE_LABEL, MATURIDADE_COR } from '@/lib/diagnostico/maturidadeComercial'
-import { rotuloVersao } from '@/lib/diagnostico/validacao'
+import { rotuloVersao, faseDiagnostico, compararPorFaseENome, FASE_LABEL, FASE_COR } from '@/lib/diagnostico/validacao'
 import { CadastrarFiliadaDrawer } from './CadastrarFiliadaDrawer'
 
 export function FiliadasLista() {
@@ -81,9 +80,16 @@ export function FiliadasLista() {
     return e.unisol_estadual_id === filiacao
   })
 
-  const filtrados = porFiliacao.filter(e =>
+  const buscados = porFiliacao.filter(e =>
     !busca || `${e.nome_fantasia} ${e.razao_social} ${e.cnpj}`.toLowerCase().includes(busca.toLowerCase())
   )
+
+  // Validados primeiro, depois Em validação, depois Rascunho/Não iniciado — alfabético dentro
+  // de cada grupo (pedido do Luciano, 2026-11-23).
+  const filtrados = [...buscados].sort((a, b) => compararPorFaseENome(
+    { fase: faseDiagnostico(diagPorEmp[a.id]), nome: a.nome_fantasia || a.razao_social || '' },
+    { fase: faseDiagnostico(diagPorEmp[b.id]), nome: b.nome_fantasia || b.razao_social || '' },
+  ))
 
   return (
     <div>
@@ -118,7 +124,7 @@ export function FiliadasLista() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">CNPJ</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Filiação</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Diagnóstico</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Maturidade comercial</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Fase do diagnóstico</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Projetos em execução</th>
               </tr>
             </thead>
@@ -159,14 +165,13 @@ export function FiliadasLista() {
                     </td>
                     <td className="px-4 py-3">
                       {(() => {
-                        const m = calcularMaturidadeComercial(diag?.respostas)
-                        return m.nivel ? (
+                        const fase = faseDiagnostico(diag)
+                        return (
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                            style={{ background: MATURIDADE_COR[m.nivel].bg, color: MATURIDADE_COR[m.nivel].cor }}
-                            title={m.motivo}>
-                            {MATURIDADE_LABEL[m.nivel]}
+                            style={{ background: FASE_COR[fase].bg, color: FASE_COR[fase].cor }}>
+                            {FASE_LABEL[fase]}
                           </span>
-                        ) : <span className="text-xs text-gray-400">—</span>
+                        )
                       })()}
                     </td>
                     <td className="px-4 py-3 text-gray-500">

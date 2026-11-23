@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, Diagnostico, Empreendimento } from '@/lib/supabase'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { faseDiagnostico, compararPorFaseENome, FASE_LABEL, FASE_COR } from '@/lib/diagnostico/validacao'
 import { useReferenciaEstaduais } from '@/lib/diagnostico/useReferenciaEstaduais'
 import { getDB } from '@/lib/offline/db'
 import { Drawer } from '@/components/layout/Drawer'
@@ -82,11 +83,18 @@ export function ListaDiagnosticos() {
     return d.empreendimentos?.unisol_estadual_id === filiacao
   })
 
-  const filtrados = porFiliacao.filter(d => {
+  const buscados = porFiliacao.filter(d => {
     if (!busca) return true
     const alvo = `${d.empreendimentos?.nome_fantasia ?? ''} ${d.empreendimentos?.razao_social ?? ''} ${d.empreendimentos?.municipio ?? ''} ${d.empreendimentos?.uf ?? ''}`.toLowerCase()
     return alvo.includes(busca.toLowerCase())
   })
+
+  // Validados primeiro, depois Em validação, depois Rascunho — alfabético dentro de cada grupo
+  // (pedido do Luciano, 2026-11-23).
+  const filtrados = [...buscados].sort((a, b) => compararPorFaseENome(
+    { fase: faseDiagnostico(a), nome: a.empreendimentos?.nome_fantasia || a.empreendimentos?.razao_social || '' },
+    { fase: faseDiagnostico(b), nome: b.empreendimentos?.nome_fantasia || b.empreendimentos?.razao_social || '' },
+  ))
 
   return (
     <div>
@@ -152,13 +160,15 @@ export function ListaDiagnosticos() {
                       {d.empreendimentos?.municipio}{d.empreendimentos?.uf ? `/${d.empreendimentos.uf}` : ''}
                     </td>
                     <td className="px-4 py-3">
-                      {d.validado_em ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Validado</span>
-                      ) : d.enviado_em ? (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação</span>
-                      ) : (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Em andamento</span>
-                      )}
+                      {(() => {
+                        const fase = faseDiagnostico(d)
+                        return (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                            style={{ background: FASE_COR[fase].bg, color: FASE_COR[fase].cor }}>
+                            {FASE_LABEL[fase]}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {pct}% <span className="text-gray-400">({feitas}/{total})</span>
