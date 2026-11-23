@@ -45,10 +45,12 @@ export async function carregarTotaisTecnico(usuarioId: string, tecnicoId: string
     }
   }
 
+  // `status` nunca é escrito pelo app de verdade (fica sempre 'rascunho') — a métrica real de
+  // "concluído" é `validado_em`, que só existe a partir da linha do tempo T0/T1/T2 (2026-11-23).
   let concluidos = 0
   let emAberto = 0
   for (const d of Array.from(porEmpreendimento.values())) {
-    if (d?.status === 'concluido') concluidos++
+    if (d?.validado_em) concluidos++
     else emAberto++
   }
 

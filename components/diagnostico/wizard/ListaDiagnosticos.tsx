@@ -133,9 +133,13 @@ export function ListaDiagnosticos() {
             <tbody>
               {filtrados.map(d => {
                 const { feitas, total, pct } = calcularCompletude(d, d.empreendimentos, idsComAnexoA.has(d.id))
+                // Diagnóstico enviado/validado está travado pro técnico editar (trigger no
+                // banco) — manda pra tela da Filiada (onde dá pra ver/imprimir ou, se for admin,
+                // validar) em vez de abrir o wizard de edição, que só daria erro de sync.
+                const destino = (d.validado_em || d.enviado_em) ? `/filiadas/${d.empreendimento_id}` : `/diagnosticos?id=${d.id}`
                 return (
                   <tr key={d.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 cursor-pointer"
-                    onClick={() => window.location.href = `/diagnosticos?id=${d.id}`}>
+                    onClick={() => window.location.href = destino}>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {d.empreendimentos?.nome_fantasia || d.empreendimentos?.razao_social || 'Empreendimento sem nome'}
                       {d._pendente && (
@@ -148,7 +152,13 @@ export function ListaDiagnosticos() {
                       {d.empreendimentos?.municipio}{d.empreendimentos?.uf ? `/${d.empreendimentos.uf}` : ''}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{d.status}</span>
+                      {d.validado_em ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">Validado</span>
+                      ) : d.enviado_em ? (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação</span>
+                      ) : (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Em andamento</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {pct}% <span className="text-gray-400">({feitas}/{total})</span>
