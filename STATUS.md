@@ -1,5 +1,37 @@
 # Status — Sistema UNISOL Brasil
 
+## Técnico envia pra validação antes da diretoria validar — CONCLUÍDO (2026-11-23, mesmo dia)
+
+Refinamento do modelo de validação T0/T1/T2 (sessão anterior, mesmo dia): Luciano notou que, como
+o diagnóstico tem autosave contínuo, o admin podia validar qualquer estado momentâneo que o
+autosave tivesse gravado assim que os 17 campos ficassem não-vazios — sem o técnico ter decidido
+que aquilo estava de fato pronto pra revisão. Migration
+`supabase_migration_25_envio_validacao.sql`:
+
+- `diagnosticos.enviado_em`/`enviado_por` — técnico (ou admin) clica "Atualizar diagnóstico"
+  (`/filiadas/[id]`, com `confirm()` nativo igual o resto do app já usa pra ações sensíveis) →
+  RPC `enviar_para_validacao()` carimba e TRAVA edição (trigger `diag_guard_pos_validacao`
+  ampliado — agora bloqueia tanto `enviado_em` quanto `validado_em` preenchidos).
+- `validar_diagnostico()` passa a exigir `enviado_em is not null` (antes só exigia `completo_em`)
+  — admin só valida o que o técnico formalmente decidiu enviar.
+- `cancelar_envio_validacao()` — destrava sem criar versão nenhuma, caso o técnico precise
+  corrigir algo antes da diretoria decidir (só funciona antes de `validado_em`, depois disso é
+  definitivo).
+- `/filiadas/[id]`: 3 estados visuais agora (Em andamento / Aguardando validação da diretoria /
+  Validado), botões condicionais por estado e por perfil (`podeSubmeter` = tecnico ou admin;
+  `souAdmin` = só admin valida). Relatório mostra também "Enviado por X em Y" quando aplicável.
+
+**Modelo final**: técnico edita à vontade via autosave (sem gerar versão) → decide quando um ciclo
+de visitas virou um checkpoint formal (ex: combinado trimestral com a diretoria) → clica
+"Atualizar diagnóstico" → aguarda validação → diretoria aprova (ou técnico cancela o envio pra
+corrigir algo antes) → vira Tx, nasce a próxima automaticamente (mecanismo da sessão anterior,
+sem mudança).
+
+Testado de ponta a ponta com usuários técnico+admin e diagnóstico 100% descartáveis (criados e
+apagados via REST, nunca dado real): admin não valida sem envio prévio; edição trava assim que
+enviado (antes mesmo de validado); cancelar envio destrava de verdade, edição volta a funcionar;
+ciclo completo enviar→validar→T0 congela→T1 nasce sozinha confirmado; reenvio de versão já
+validada rejeitado. Commit `3709558`.
 ## Linha do tempo T0/T1/T2 com validação da diretoria — CONCLUÍDO (2026-11-23)
 
 Pedido do Luciano: diretoria precisa validar diagnósticos 100% preenchidos, e precisava de um
