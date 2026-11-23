@@ -6,6 +6,7 @@ import { Diagnostico, Empreendimento, Usuario } from '@/lib/supabase'
 import { getDB, DiagnosticoLocal, EmpreendimentoLocal } from '@/lib/offline/db'
 import { secaoAtual } from '@/lib/diagnostico/secoesConfig'
 import { calcularCompletude } from '@/lib/diagnostico/completude'
+import { rotuloVersao, enviarParaValidacao, cancelarEnvioValidacao } from '@/lib/diagnostico/validacao'
 import { useAutosaveDiagnostico } from '@/lib/diagnostico/useAutosave'
 import { SyncStatusBadge } from '@/components/layout/SyncStatusBadge'
 import { SidebarSecoes } from './SidebarSecoes'
@@ -74,6 +75,8 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
   const [respostas, setRespostas] = useState<Record<string, unknown>>({})
   const [analiseTecnica, setAnaliseTecnica] = useState<Record<string, unknown>>({})
   const [temAnexoA, setTemAnexoA] = useState(false)
+  const [processandoEnvio, setProcessandoEnvio] = useState(false)
+  const [erroEnvio, setErroEnvio] = useState('')
 
   const { salvarRespostas, salvarAnaliseTecnica } = useAutosaveDiagnostico(diagnosticoId)
 
@@ -105,6 +108,32 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
     }
     carregar()
   }, [diagnosticoId])
+
+  async function recarregarEnvio() {
+    const sb = getSupabase()
+    const { data } = await sb.from('diagnosticos').select('enviado_em, enviado_por, validado_em, validado_por').eq('id', diagnosticoId).single()
+    if (data) setDiagnostico(d => d ? { ...d, ...data } : d)
+  }
+
+  async function enviarDiagnostico() {
+    if (!confirm('Ao enviar, as respostas atuais vão para validação da diretoria e a edição trava até a decisão. Confirma o envio?')) return
+    setProcessandoEnvio(true)
+    setErroEnvio('')
+    const resultado = await enviarParaValidacao(diagnosticoId)
+    if ('error' in resultado) { setErroEnvio(resultado.error); setProcessandoEnvio(false); return }
+    await recarregarEnvio()
+    setProcessandoEnvio(false)
+  }
+
+  async function cancelarEnvioDiagnostico() {
+    if (!confirm('Cancelar o envio? O diagnóstico volta a ficar editável, sem gerar nenhuma versão.')) return
+    setProcessandoEnvio(true)
+    setErroEnvio('')
+    const resultado = await cancelarEnvioValidacao(diagnosticoId)
+    if ('error' in resultado) { setErroEnvio(resultado.error); setProcessandoEnvio(false); return }
+    await recarregarEnvio()
+    setProcessandoEnvio(false)
+  }
 
   const atualizarSecaoRespostas = useCallback((id: string, dados: unknown) => {
     setRespostas(prev => {
@@ -147,10 +176,11 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
     </div>
   )
 
-  const { completas } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento, temAnexoA)
+  const { completas, pct } = calcularCompletude({ respostas, analise_tecnica: analiseTecnica }, empreendimento, temAnexoA)
 
   const cfg = secaoAtual(secaoId)
   const perfilUsuario = usuario?.perfil ?? 'aplicador'
+  const podeSubmeter = perfilUsuario === 'tecnico' || perfilUsuario === 'admin'
 
   return (
     <div className="h-[calc(100vh-56px)] lg:h-screen flex flex-col">
@@ -192,6 +222,35 @@ export function DiagnosticoWizardShell({ diagnosticoId }: { diagnosticoId: strin
                 setRespostaSecao: atualizarSecaoRespostas,
                 setAnaliseSecao: atualizarSecaoAnalise,
               })
+            )}
+
+            {cfg.id === 'anexoB' && (
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-900 font-medium">
+                  {pct}% preenchido <span className="text-gray-400 font-normal">· {rotuloVersao(diagnostico)}</span>
+                  {diagnostico.validado_em ? (
+                    <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Validado</span>
+                  ) : diagnostico.enviado_em ? (
+                    <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Aguardando validação da diretoria</span>
+                  ) : null}
+                </p>
+                {erroEnvio && <p className="text-xs text-red-600 mt-1">{erroEnvio}</p>}
+                <div className="flex gap-2 mt-2">
+                  {!diagnostico.validado_em && diagnostico.enviado_em && podeSubmeter && (
+                    <button onClick={cancelarEnvioDiagnostico} disabled={processandoEnvio}
+                      className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                      Cancelar envio
+                    </button>
+                  )}
+                  {pct === 100 && !diagnostico.enviado_em && !diagnostico.validado_em && podeSubmeter && (
+                    <button onClick={enviarDiagnostico} disabled={processandoEnvio || !estaOnline()}
+                      title={!estaOnline() ? 'Precisa de conexão pra enviar' : undefined}
+                      className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
+                      {processandoEnvio ? 'Enviando…' : 'Enviar para validação'}
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </main>

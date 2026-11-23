@@ -89,7 +89,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
   }
 
   async function enviar(diagnosticoId: string) {
-    if (!confirm('Ao atualizar o diagnóstico, as mudanças serão encaminhadas para validação da diretoria. Confirma a atualização?')) return
+    if (!confirm('Ao enviar, as respostas atuais vão para validação da diretoria e a edição trava até a decisão. Confirma o envio?')) return
     setProcessando(true)
     setErroAcao('')
     const resultado = await enviarParaValidacao(diagnosticoId)
@@ -225,7 +225,7 @@ export function FiliadaDetalhe({ empreendimentoId }: { empreendimentoId: string 
               {completude!.pct === 100 && !atual.enviado_em && !atual.validado_em && podeSubmeter && emp.diagnostico_liberado !== false && (
                 <button onClick={() => enviar(atual.id)} disabled={processando}
                   className="text-sm font-medium rounded-lg px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-                  {processando ? 'Enviando…' : 'Atualizar diagnóstico'}
+                  {processando ? 'Enviando…' : 'Enviar para validação'}
                 </button>
               )}
               {atual.enviado_em && !atual.validado_em && souAdmin && (
