@@ -1,5 +1,21 @@
 # Status — Sistema UNISOL Brasil
 
+## Botão "Enviar para validação" também no wizard (Anexo B) — CONCLUÍDO (2026-11-23, mesmo dia)
+
+Pedido do Luciano depois de testar: manter o botão em `/filiadas/[id]` (ficou), mas também
+colocar o mesmo botão direto no wizard do diagnóstico, logo abaixo do Anexo B — onde o técnico já
+está trabalhando, sem precisar voltar pra tela da Filiada — e renomear "Atualizar diagnóstico"
+pra **"Enviar para validação"** nos dois lugares (mais claro sobre o que a ação faz).
+
+`DiagnosticoWizardShell` ganhou a mesma lógica de enviar/cancelar envio (popup de confirmação
+igual, mesma regra de perfil `tecnico`/`admin`), com um `recarregarEnvio()` leve que só busca os 4
+campos de status depois da ação, em vez de reler o diagnóstico inteiro. Desabilitado quando
+offline (a ação em si — RPC no banco — exige conexão, diferente do autosave que funciona sem
+sinal).
+
+Testado ao vivo em produção com conta admin descartável: abri o diagnóstico 100% completo da
+Associação Renascer, cliquei na seção Anexo B, confirmei "100% preenchido · T0" + botão "Enviar
+para validação" aparecendo certinho logo abaixo do conteúdo da seção. Commit `e47f4df`.
 ## Fila "Aguardando sua validação" no dashboard do admin — CONCLUÍDO (2026-11-23, mesmo dia)
 
 Luciano perguntou "como isso chega pra nós, admin?" depois de ver o fluxo de envio/validação —
