@@ -1,6 +1,40 @@
 # Status — Sistema UNISOL Brasil
 
-Última atualização: 2026-11-23
+Última atualização: 2026-11-24
+
+## Lote de acessos — pedido formal da Melissa (2026-11-24)
+
+E-mail da Melissa Souza Branco (Coordenação Nacional EcoUni), encaminhado pelo Luciano: 3
+extensionistas novos pra Meta 1/Etapa 1.1 (diagnóstico socioeconômico e produtivo) + 2 saídas.
+
+**Incluídos** (perfil `tecnico`, `equipe_projeto.nivel_acesso='extensionista'`, território por
+`projeto_executante_id` — PB cai no Executante Bahia, que cobre o Nordeste inteiro):
+- Jussara (Ecossistema) — `costasarah686@gmail.com` — 8 empreendimentos da Paraíba
+- Mauricio — `mauriciolucchi1978@gmail.com` — 6 empreendimentos (Sudoeste Paulista + Iporanga/Cananéia)
+- Genicelli — `genicelli@yahoo.com.br` — 10 empreendimentos do Vale do Ribeira
+
+Todos os 24 CNPJs resolvidos contra o cadastro real antes de criar qualquer conta (nenhum
+empreendimento novo precisou ser cadastrado desta vez). E-mail de 1º acesso enviado aos 3, com
+cópia pra `cooperamais@unisolbrasil.org.br` (pedido explícito da Melissa) — 1ª tentativa pra
+Genicelli falhou por instabilidade momentânea do SMTP, reenviada com sucesso na sequência.
+
+**Achado real, mesmo padrão de 16/11**: 3 dos 10 empreendimentos pedidos pra Genicelli
+(COOPERQUIVALE, Cooperativa de Agricultura Familiar de Miracatu, COOPERAGUA) estavam congelados
+desde o lote de substituição que a própria Melissa passou em 05/11. Confirmado com o Luciano —
+descongelados antes de vincular.
+
+**Removidos** (saíram da equipe): Daniely Sales Guedes (substituída pela Jussara na Paraíba) e
+Francieli de Souza Cunha (RS, sem substituta indicada). Ação aplicada: `usuarios.ativo=false`
+(bloqueia login de verdade, já checado no `AppShell`) + `equipe_projeto.ativo=false` com
+`data_saida` de hoje — **não foi feita exclusão** de conta nem dos vínculos históricos
+`tecnico_empreendimento_projeto` (preserva o histórico de quem trabalhou em quê). Não existe UI
+pra essa ação ainda (campo `ativo`/`data_saida` do `equipe_projeto` existe no schema desde a
+migration 10 mas sem campo no drawer) — feito direto via REST, mesmo padrão de sempre pra lotes
+sem tela própria.
+
+Tudo rodado via script `.mjs` descartável (não commitado), confirmado via REST ao final: 3
+usuários criados, 24 vínculos técnico×empreendimento, 3 empreendimentos descongelados, 2 contas
+desativadas com saída de equipe registrada.
 
 ## 📍 Como funciona a validação hoje (resumo — o modelo mudou várias vezes em 2026-11-23)
 
