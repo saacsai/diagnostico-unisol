@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSupabase, DocumentoInstitucional } from '@/lib/supabase'
+import { sanitizarNomeArquivo } from '@/lib/documentos'
 
 const ITENS = [
   { chave: 'estatuto', label: 'Estatuto e alterações' },
@@ -47,7 +48,7 @@ export function AnexoAEvidencias({ diagnosticoId }: { diagnosticoId: string }) {
   async function anexar(chave: string, arquivo: File) {
     setErro(''); setEnviando(chave)
     const sb = getSupabase()
-    const path = `diagnostico/${diagnosticoId}/${chave}-${crypto.randomUUID()}-${arquivo.name}`
+    const path = `diagnostico/${diagnosticoId}/${chave}-${crypto.randomUUID()}-${sanitizarNomeArquivo(arquivo.name)}`
     const { error: erroUpload } = await sb.storage.from('documentos-institucionais').upload(path, arquivo)
     if (erroUpload) { setErro(`Erro no upload: ${erroUpload.message}`); setEnviando(null); return }
     const { data: sessao } = await sb.auth.getSession()

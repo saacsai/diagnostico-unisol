@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getSupabase, UnisolEstadual } from '@/lib/supabase'
+import { sanitizarNomeArquivo } from '@/lib/documentos'
 import { Drawer } from '@/components/layout/Drawer'
 import { CampoTexto } from '@/components/diagnostico/campos/CampoTexto'
 import { BuscarCnpjBotao } from '@/components/institucional/BuscarCnpjBotao'
@@ -67,7 +68,7 @@ export function CadastrarFiliadaDrawer({ aberto, onFechar }: { aberto: boolean; 
     if (erroEmp) { setErro(erroEmp.message); setSalvando(false); return }
 
     if (arquivo) {
-      const path = `empreendimento/${novoId}/${crypto.randomUUID()}-${arquivo.name}`
+      const path = `empreendimento/${novoId}/${crypto.randomUUID()}-${sanitizarNomeArquivo(arquivo.name)}`
       const { error: erroUpload } = await sb.storage.from('documentos-institucionais').upload(path, arquivo)
       if (!erroUpload) {
         await sb.from('documentos_institucionais').insert({

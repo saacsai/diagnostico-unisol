@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSupabase, DocumentoInstitucional, EntidadeTipo } from '@/lib/supabase'
 import { Drawer } from '@/components/layout/Drawer'
-import { situacaoDocumento, LABEL_SITUACAO, TIPOS_DOCUMENTO } from '@/lib/documentos'
+import { situacaoDocumento, LABEL_SITUACAO, TIPOS_DOCUMENTO, sanitizarNomeArquivo } from '@/lib/documentos'
 
 const VAZIO = { tipo_documento: 'estatuto', data_emissao: '', data_validade: '', observacao: '' }
 
@@ -40,7 +40,7 @@ export function DocumentosAdmin({ entidadeTipo, entidadeId }: { entidadeTipo: En
     if (!arquivo) { setErro('Selecione um arquivo.'); return }
     setSalvando(true)
     const sb = getSupabase()
-    const path = `${entidadeTipo}/${entidadeId}/${crypto.randomUUID()}-${arquivo.name}`
+    const path = `${entidadeTipo}/${entidadeId}/${crypto.randomUUID()}-${sanitizarNomeArquivo(arquivo.name)}`
     const { error: erroUpload } = await sb.storage.from('documentos-institucionais').upload(path, arquivo)
     if (erroUpload) { setErro(`Erro no upload: ${erroUpload.message}`); setSalvando(false); return }
 

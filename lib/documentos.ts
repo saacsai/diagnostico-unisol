@@ -1,3 +1,18 @@
+// Supabase Storage rejeita certos caracteres na CHAVE do objeto (espaço, acento) com
+// "Invalid key" — mas o nome original continua exibido normal, porque fica salvo à parte em
+// `documentos_institucionais.nome_arquivo`. Sanitiza só o trecho usado no caminho de upload.
+export function sanitizarNomeArquivo(nome: string): string {
+  const pontoFinal = nome.lastIndexOf('.')
+  const base = pontoFinal > 0 ? nome.slice(0, pontoFinal) : nome
+  const ext  = pontoFinal > 0 ? nome.slice(pontoFinal) : ''
+  const removerAcentos = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const baseLimpa = removerAcentos(base)
+    .replace(/[^a-zA-Z0-9._-]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+  return (baseLimpa || 'arquivo') + ext.toLowerCase()
+}
+
 export type SituacaoDocumento = 'sem_validade' | 'vigente' | 'vencendo' | 'vencida'
 
 export function situacaoDocumento(dataValidade: string | null): SituacaoDocumento {
