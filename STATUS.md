@@ -2,6 +2,26 @@
 
 Última atualização: 2026-11-24
 
+## Bug real corrigido: "Invalid key" ao anexar documento com espaço/acento no nome (2026-11-24)
+
+Luciano mandou print de erro no Anexo A do diagnóstico: `Erro no upload: Invalid key:
+diagnostico/.../estatuto-...-Estatuto Tefé.pdf`. Causa: o nome original do arquivo (com espaço e
+"é") ia direto pro caminho usado como chave do objeto no Supabase Storage, que rejeita certos
+caracteres fora de um conjunto seguro — reproduzido ao vivo com `curl` direto na API de Storage
+antes de corrigir, confirmando a causa exata (`InvalidKey`).
+
+**Corrigido**: `sanitizarNomeArquivo()` novo em `lib/documentos.ts` — remove acentos (NFD +
+strip de diacríticos) e troca qualquer caractere fora de `[a-zA-Z0-9._-]` por `_`, preservando a
+extensão. Aplicado nos **3 lugares que fazem upload de documento** (o mesmo bug existia em
+todos): Anexo A do diagnóstico (`AnexoAEvidencias.tsx`), cadastro de Filiada
+(`CadastrarFiliadaDrawer.tsx`) e documentos institucionais (`DocumentosAdmin.tsx`). O nome
+original continua aparecendo normal pro usuário — fica salvo à parte em
+`documentos_institucionais.nome_arquivo`; só o trecho usado como chave de storage é sanitizado.
+
+Testado ao vivo direto na API de Storage: nome problemático reproduz `InvalidKey`, nome
+sanitizado funciona normal — confirmado antes e depois do fix, arquivo de teste removido depois.
+Commit `e1b559e`.
+
 ## Lote de acessos — pedido formal da Melissa (2026-11-24)
 
 E-mail da Melissa Souza Branco (Coordenação Nacional EcoUni), encaminhado pelo Luciano: 3
