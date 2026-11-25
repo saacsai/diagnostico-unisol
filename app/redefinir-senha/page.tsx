@@ -26,6 +26,7 @@ export default function RedefinirSenhaPage() {
   const [loading, setLoading]   = useState(false)
   const [erro, setErro]         = useState('')
   const [ok, setOk]             = useState(false)
+  const [semSessao, setSemSessao] = useState(false)
 
   useEffect(() => {
     const supabase = getSupabase()
@@ -40,7 +41,12 @@ export default function RedefinirSenhaPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) setPronto(true)
     })
-    return () => subscription.unsubscribe()
+    // Rede de segurança: se depois de alguns segundos ainda não tiver sessão (link
+    // expirado, já usado, ou a pessoa chegou aqui sem token nenhum), para de mostrar
+    // "Verificando link…" pra sempre e avisa — sem isso ficava travado sem explicação
+    // nenhuma (mesma família do "o link não funciona" relatado em 2026-11-25).
+    const timeout = setTimeout(() => setSemSessao(true), 4000)
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -65,6 +71,15 @@ export default function RedefinirSenhaPage() {
           <p className="text-sm rounded-lg p-3" style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)' }}>
             Senha definida! Redirecionando…
           </p>
+        ) : semSessao && !pronto ? (
+          <div className="space-y-3">
+            <p className="text-sm rounded-lg p-3 bg-amber-50 text-amber-700 border border-amber-200">
+              Este link expirou ou já tinha sido usado antes.
+            </p>
+            <a href="/login" className="block text-center text-sm font-semibold rounded-lg py-2.5 text-white" style={{ background: PRIMARY }}>
+              Pedir um novo link
+            </a>
+          </div>
         ) : !pronto ? (
           <p className="text-sm text-gray-400">Verificando link…</p>
         ) : (

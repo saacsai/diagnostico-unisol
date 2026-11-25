@@ -1,6 +1,34 @@
 # Status — Sistema UNISOL Brasil
 
-Última atualização: 2026-11-24
+Última atualização: 2026-11-25
+
+## Bug real corrigido: link de redefinição de senha "não funciona" (2026-11-25)
+
+Luciano reportou que várias pessoas reclamaram que o link de redefinição de senha não funciona.
+Reproduzido ao vivo (conta de teste descartável + `curl -D -`): um link de recovery do Supabase é
+de uso único e expira (~1h). Quando expirado ou já clicado antes, o Supabase redireciona pra raiz
+do site com `#error=access_denied&error_code=otp_expired&error_description=...` no **fragment**
+da URL (nunca visível/processável no servidor) — e `app/page.tsx` não tratava esse caso nenhum,
+só escutava o evento `PASSWORD_RECOVERY` e senão caía no `/login` normal depois de 1s. Resultado:
+a pessoa cai num login completamente normal, sem erro nenhum, achando que "o link não funciona"
+— sem pista de que o problema é o link em si (expirado/reusado), não o sistema.
+
+Esse é um bug **diferente** do "Verificando link..." travado corrigido em 2026-11-18 (aquele era
+sessão válida mal interpretada por nome de evento; este é token realmente inválido, sem sessão
+nenhuma).
+
+**Corrigido** em 3 pontos:
+- `app/page.tsx`: antes de qualquer outra lógica, checa `window.location.hash.includes('error=')`
+  e redireciona pra `/login?erro=link_invalido` em vez de cair no login mudo.
+- `app/login/page.tsx`: novo banner amarelo quando `erro=link_invalido`, explicando que o link
+  expirou/já foi usado e indicando o botão "Esqueci minha senha" pra pedir um novo.
+- `app/redefinir-senha/page.tsx`: rede de segurança adicional — se depois de 4s ainda não tiver
+  sessão (ex: alguém chega direto nessa URL sem token, ou algum caso em que o erro não cai na
+  raiz), para de mostrar "Verificando link…" pra sempre e mostra o mesmo tipo de aviso com botão
+  pra pedir um novo link, em vez de travar silenciosamente.
+
+Testado: `npx tsc --noEmit` e `npm run build` limpos. Reprodução do erro confirmada via curl
+direto na API do Supabase (`location:` do redirect com o hash de erro) antes do fix.
 
 ## Bug real corrigido: "Invalid key" ao anexar documento com espaço/acento no nome (2026-11-24)
 

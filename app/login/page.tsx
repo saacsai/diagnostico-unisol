@@ -20,6 +20,7 @@ function LoginInner() {
   const params = useSearchParams()
   const next = params.get('next') ?? '/diagnosticos'
   const inativo = params.get('inativo') === '1'
+  const linkInvalido = params.get('erro') === 'link_invalido'
 
   const [email, setEmail]       = useState('')
   const [senha, setSenha]       = useState('')
@@ -102,6 +103,13 @@ function LoginInner() {
           {inativo && modo === 'login' && (
             <p className="text-xs rounded-lg p-2 mb-3 bg-amber-50 text-amber-700 border border-amber-200">
               Este usuário está inativo. Fale com um administrador do sistema.
+            </p>
+          )}
+
+          {linkInvalido && modo === 'login' && (
+            <p className="text-xs rounded-lg p-2 mb-3 bg-amber-50 text-amber-700 border border-amber-200">
+              O link que você usou expirou ou já tinha sido usado antes. Clique em
+              &quot;Esqueci minha senha&quot; abaixo pra pedir um novo.
             </p>
           )}
 

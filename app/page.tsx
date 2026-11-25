@@ -11,6 +11,16 @@ import { getSupabase } from '@/lib/supabase'
 // config do painel.
 export default function Home() {
   useEffect(() => {
+    // Link de recovery expirado (padrão ~1h) ou já clicado antes (token de uso único) cai
+    // aqui com `#error=access_denied&error_code=otp_expired&...` em vez de uma sessão válida —
+    // sem checar isso, o usuário caía direto e SEM AVISO NENHUM no login normal, achando que
+    // "o link não funciona" (reportado por várias pessoas, 2026-11-25). Supabase manda esse erro
+    // sempre no fragment da raiz, nunca em /redefinir-senha, então só precisa tratar aqui.
+    if (window.location.hash.includes('error=')) {
+      window.location.href = '/login?erro=link_invalido'
+      return
+    }
+
     const supabase = getSupabase()
     // Só reage especificamente a PASSWORD_RECOVERY — outros eventos (ex:
     // INITIAL_SESSION) disparam antes/independente de token na URL e não
