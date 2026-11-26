@@ -2,18 +2,22 @@
 
 Última atualização: 2026-11-26
 
-## Feature nova: botão de remover documento no Anexo A pro técnico (2026-11-26)
+## Feature nova: botão de remover documento no Anexo A pro técnico (2026-11-26) — CONCLUÍDO
 
 Fecha a pendência do caso da Antonia (logo abaixo): `AnexoAEvidencias.tsx` ganhou botão "Remover"
 com confirmação inline ("Remover? [Sim] [Cancelar]") ao lado de "Anexar"/"Substituir", pra
-qualquer técnico. Precisou de 2 RLS novas (`supabase_migration_26_remover_documento_tecnico.sql`,
-**ainda não rodada em produção** — revelada no Finder pro Luciano rodar): delete em
-`documentos_institucionais` pra técnico (só admin podia, migration 04) e delete em
+qualquer técnico. Precisou de 2 RLS novas (`supabase_migration_26_remover_documento_tecnico.sql`):
+delete em `documentos_institucionais` pra técnico (só admin podia, migration 04) e delete em
 `storage.objects` do bucket `documentos-institucionais` (nunca existiu policy de delete nenhuma
-ali, nem pra admin). `tsc`/`build` limpos. Commit `e7c965f`.
+ali, nem pra admin — 1ª tentativa de rodar a migration deu erro de policy de storage duplicada
+com esse nome vindo de algum lugar não rastreado; corrigido com `drop policy if exists` antes de
+cada `create`, rodado de novo com sucesso).
 
-**Pendente**: rodar a migration 26 no Supabase antes do botão funcionar de verdade (até lá, RLS
-bloqueia o delete do lado do técnico).
+Testado ao vivo de ponta a ponta: conta técnica descartável + empreendimento/diagnóstico
+descartáveis + documento de teste, logado de verdade no `/login`, clicou "Remover" na UI,
+confirmado que o registro em `documentos_institucionais` e o objeto no Storage sumiram os dois
+(consulta direta pós-clique). Massa de teste toda removida depois. `tsc`/`build` limpos.
+Commits `e7c965f`, `0912f53`.
 
 ## Suporte real: técnico sem como remover documento errado do Anexo A (2026-11-26)
 
