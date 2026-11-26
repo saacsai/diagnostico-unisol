@@ -1,6 +1,25 @@
 # Status — Sistema UNISOL Brasil
 
-Última atualização: 2026-11-25
+Última atualização: 2026-11-26
+
+## Suporte real: técnico sem como remover documento errado do Anexo A (2026-11-26)
+
+Antonia Barroso (técnica AM — Tefé/Amaturá/Silves) mandou print pra Melissa: subiu documentos de
+uma associação no lugar de outra no Anexo A, e não conseguiu tirar. Causa confirmada lendo
+`AnexoAEvidencias.tsx`: **o técnico não tem nenhum botão de remover documento** — só upload, sem
+delete. Não é erro de uso dela, é um buraco de feature real.
+
+Resolvido manualmente pra destravar na hora: localizados os 7 documentos que ela subiu entre
+18:18–18:21 (UTC) de hoje no diagnóstico do empreendimento AM-0007 (Clube de Mães Santa Margarida
+Maria de Alacoque, Tefé) via `documentos_institucionais.uploaded_by` — um deles
+("ATA DE ALTERAÇÃO DE ENDEREÇO VIRGILIO BARROSO.pdf") claramente não pertencia a essa entidade.
+Apagados os 7 (Storage + banco, já que ela ia subir tudo de novo mesmo) e zerado o `completo_em`
+do diagnóstico, que tinha ficado travado em "100% completo" por causa dos documentos que não
+existem mais.
+
+**Pendência registrada pra fase futura**: adicionar botão de remover documento no Anexo A pro
+técnico (hoje só existe no código do admin, não no do técnico) — sem isso, qualquer engano de
+upload exige intervenção manual via banco.
 
 ## Bug real corrigido: link de redefinição de senha "não funciona" (2026-11-25)
 
