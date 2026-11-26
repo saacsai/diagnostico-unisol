@@ -26,6 +26,8 @@ export function AnexoAEvidencias({ diagnosticoId }: { diagnosticoId: string }) {
   const [docs, setDocs] = useState<Record<string, DocumentoInstitucional>>({})
   const [carregando, setCarregando] = useState(true)
   const [enviando, setEnviando] = useState<string | null>(null)
+  const [removendo, setRemovendo] = useState<string | null>(null)
+  const [confirmando, setConfirmando] = useState<string | null>(null)
   const [erro, setErro] = useState('')
 
   async function carregar() {
@@ -67,6 +69,17 @@ export function AnexoAEvidencias({ diagnosticoId }: { diagnosticoId: string }) {
     if (data) window.open(data.signedUrl, '_blank')
   }
 
+  async function remover(chave: string, doc: DocumentoInstitucional) {
+    setErro(''); setRemovendo(chave)
+    const sb = getSupabase()
+    const { error: erroStorage } = await sb.storage.from('documentos-institucionais').remove([doc.storage_path])
+    if (erroStorage) { setErro(`Erro ao remover: ${erroStorage.message}`); setRemovendo(null); return }
+    const { error: erroDelete } = await sb.from('documentos_institucionais').delete().eq('id', doc.id)
+    if (erroDelete) { setErro(erroDelete.message); setRemovendo(null); return }
+    setRemovendo(null); setConfirmando(null)
+    carregar()
+  }
+
   if (carregando) return <p className="text-xs text-gray-400">Carregando…</p>
 
   return (
@@ -86,12 +99,34 @@ export function AnexoAEvidencias({ diagnosticoId }: { diagnosticoId: string }) {
                 <span className="text-[11px] text-gray-400">Pendente</span>
               )}
             </div>
-            <label className="text-[11px] font-medium px-2.5 py-1 rounded-full border cursor-pointer flex-shrink-0"
-              style={{ color: 'var(--primary)', borderColor: 'var(--primary-light)' }}>
-              {enviando === item.chave ? 'Enviando…' : doc ? 'Substituir' : 'Anexar'}
-              <input type="file" className="hidden" disabled={enviando === item.chave}
-                onChange={e => { const f = e.target.files?.[0]; if (f) anexar(item.chave, f) }} />
-            </label>
+            {doc && confirmando === item.chave ? (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <span className="text-[11px] text-gray-500">Remover?</span>
+                <button onClick={() => remover(item.chave, doc)} disabled={removendo === item.chave}
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-red-200 text-red-600">
+                  {removendo === item.chave ? 'Removendo…' : 'Sim'}
+                </button>
+                <button onClick={() => setConfirmando(null)} disabled={removendo === item.chave}
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-500">
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <label className="text-[11px] font-medium px-2.5 py-1 rounded-full border cursor-pointer"
+                  style={{ color: 'var(--primary)', borderColor: 'var(--primary-light)' }}>
+                  {enviando === item.chave ? 'Enviando…' : doc ? 'Substituir' : 'Anexar'}
+                  <input type="file" className="hidden" disabled={enviando === item.chave}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) anexar(item.chave, f) }} />
+                </label>
+                {doc && (
+                  <button onClick={() => setConfirmando(item.chave)}
+                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-red-200 text-red-600">
+                    Remover
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )
       })}
