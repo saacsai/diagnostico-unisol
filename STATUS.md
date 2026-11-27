@@ -2,6 +2,18 @@
 
 Última atualização: 2026-11-27
 
+## Lote de acesso — Carlos Omar da Silva (Acre) (2026-11-27)
+
+Mesmo pedido/formato da Lázara (linha de planilha), mesma lista de 28 empreendimentos — função
+diferente: "Assessoria Administrativa" em vez de "Extensionista de Campo". Sistema só tem 3
+níveis de acesso (`nacional`/`regional`/`extensionista`); confirmado com Luciano usar
+`extensionista` mesmo assim (mesmo molde de vínculo por empreendimento).
+
+Como o lote da Lázara já tinha corrigido os 3 congelados e cadastrado o "Associação Belo Jardim"
+(AC-0029), esse segundo lote não teve achado novo — os 28 bateram direto. Conta criada
+(`carlosaspet@yahoo.com.br`), 28 vínculos conferidos, e-mail de 1º acesso enviado com cópia pra
+Melissa.
+
 ## Lote de acesso — Lázara Marcelino de Souza (Acre) (2026-11-27)
 
 Pedido direto do Luciano (contato feito no evento da APEX), dados vindos de uma linha de
