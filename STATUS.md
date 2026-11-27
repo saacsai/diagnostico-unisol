@@ -2,6 +2,21 @@
 
 Última atualização: 2026-11-27
 
+## Ampliação de responsabilidade — Gabriele Ramos Venâncio (Sorocaba/SP) (2026-11-27)
+
+Diferente dos lotes anteriores: ela **já tinha conta** (criada no lote Marco 0 de 16/11), com 10
+empreendimentos da região de Sorocaba já vinculados. Nova linha de planilha descrevia papel
+ampliado: "Coordenação Regional Sudeste – responsável provisório... até contratação do
+extensionista", território "Região de Sorocaba", 12 empreendimentos — mas 10 dos 12 já batiam com
+o que ela já tinha (conferido achando a interseção, não re-vinculando duplicado). Só 2 eram
+novos: Instituto Ecológico de Artistas Orgânicos Ultrassociais (já existia, SP-0036, só faltava o
+vínculo) e Cooperativa Mista Agropecuária de Capão Bonito (não existia, cadastrada como SP-0043).
+
+**Decisão explícita do Luciano**: manter o nível de acesso dela como `extensionista` (não elevar
+pra `regional`, mesmo com a descrição de "coordenação regional") — só documentado o cargo real no
+campo `cargo` do `equipe_projeto`, sem mudar permissão. E-mail informativo enviado (não é link de
+1º acesso, ela já tinha conta), com cópia pra Melissa.
+
 ## Lote de acesso — Carlos Omar da Silva (Acre) (2026-11-27)
 
 Mesmo pedido/formato da Lázara (linha de planilha), mesma lista de 28 empreendimentos — função
