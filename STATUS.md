@@ -1,6 +1,30 @@
 # Status — Sistema UNISOL Brasil
 
-Última atualização: 2026-11-26
+Última atualização: 2026-11-27
+
+## Lote de acesso — Lázara Marcelino de Souza (Acre) (2026-11-27)
+
+Pedido direto do Luciano (contato feito no evento da APEX), dados vindos de uma linha de
+planilha (nome, função "Extensionista de Campo", UF AC, território "Acre (todo o estado)",
+telefone/e-mail, lista de 28 empreendimentos por nome+município). Conta criada
+(`consultoria.multiservice@gmail.com`, perfil `tecnico`, nível de acesso `extensionista`,
+território via `projeto_executante_id` da UNISOL Brasil nacional — AC cai nesse executante,
+junto com AM/AP/PA/RO/RR/TO/MT/MS/GO/DF).
+
+**Achados reais, mesmo padrão de sempre**:
+- 3 dos 28 empreendimentos pedidos estavam congelados (COOPERGRÃOS/Brasiléia, Vale do
+  Juruá/Rodrigues Alves, Walter Arce/Bujari) — confirmado com Luciano, descongelados.
+- 1 dos 28 ("Associação Belo Jardim", Rio Branco) não batia com nenhum empreendimento
+  cadastrado — confirmado com Luciano, cadastrado como novo (`AC-0029`).
+- Por outro lado, 1 empreendimento do Acre que já existia no banco (`AC-0028`, "Associação dos
+  Pequenos Produtores Rurais Fronteira", Epitaciolândia) **não** estava na lista da Lázara — não
+  foi vinculado a ela.
+- Bug de processo pego a tempo: montei o lote inicial com 29 IDs em vez de 28 (tinha incluído o
+  AC-0028 por engano) — conferência de contagem antes do insert pegou o erro.
+
+28 vínculos `tecnico_empreendimento_projeto` criados e conferidos (contagem + distinct). E-mail
+de 1º acesso enviado (link de recovery via short-link `/ir/`), com cópia pra
+`cooperamais@unisolbrasil.org.br` (mesmo padrão dos lotes anteriores da Melissa).
 
 ## Feature nova: botão de remover documento no Anexo A pro técnico (2026-11-26) — CONCLUÍDO
 
